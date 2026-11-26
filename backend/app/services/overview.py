@@ -83,12 +83,13 @@ def daily_overview(db: Session, user: User, day: date | None = None) -> dict:
         "deadlines": deadlines,
         "active_projects": [p.model_dump(mode="json") for p in active],
         "summary": summary_text(db, user, today, events_today, tasks_today, overdue, deadlines, local_now),
+        "headline": f"{greeting_for(local_now.hour)}, {user_name(db, user)}",
     }
 
 
 def summary_text(db, user, today, events_today, tasks_today, overdue, deadlines, local_now) -> str:
     """Deterministische, ausschließlich aus echten Daten erzeugte Zusammenfassung."""
-    parts = [f"{greeting_for(local_now.hour)}, {user_name(db, user)}!"]
+    parts = []
     timed = [e for e in events_today if not e["all_day"]]
     remaining = [e for e in timed if e["end"] > datetime.now(timezone.utc).isoformat()]
     if not events_today:
@@ -110,8 +111,9 @@ def summary_text(db, user, today, events_today, tasks_today, overdue, deadlines,
         label = f"Für dein Projekt {nxt['title']}" if nxt["type"] == "project" else f"Die Aufgabe „{nxt['title']}“"
         parts.append(f"{label} ist die nächste Deadline {fmt_date(d, today)}.")
     if not tasks_today and not overdue and not events_today:
-        parts.append("Ein guter Tag, um an deinen Projekten weiterzuarbeiten.")
+        parts.append("Es liegen keine fälligen Punkte vor.")
     return " ".join(parts)
+
 
 
 def week_open_tasks(db: Session, user: User) -> list[Task]:

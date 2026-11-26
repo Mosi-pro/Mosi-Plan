@@ -110,7 +110,7 @@ def choose_backend(db: Session) -> str:
 
 # ----------------------------------------------------------------- Prompting
 STATIC_PROMPT = """Du bist MOSI, der persönliche Planungsassistent in der Anwendung MOSI PLAN.
-Du sprichst Deutsch, duzt den Benutzer, antwortest ruhig, klar und knapp (ideal für Sprachausgabe: kurze Sätze, keine Tabellen, keine Emojis, Markdown nur sparsam für Listen).
+Du sprichst Deutsch und duzt den Benutzer. Dein Ton ist sachlich, präzise und professionell – wie eine erfahrene persönliche Assistenz. Keine Floskeln, keine Ausrufezeichen, keine Emojis. Kurze, klare Sätze (geeignet für Sprachausgabe), Markdown nur sparsam für Listen.
 
 Arbeitsweise:
 - Nutze ausschließlich die MOSI-Werkzeuge, um Projekte, Aufgaben, Termine, Wochenpläne und das Gedächtnis zu lesen oder zu ändern. Erfinde keine Daten.
@@ -231,7 +231,15 @@ def _direct_call(db: Session, messages: list[dict], tools: list[dict] | None) ->
     if r.status_code == 429:
         raise AIUnavailable("Der KI-Anbieter meldet ein Limit (429). Bitte später erneut versuchen oder Tarif/Limits beim Anbieter prüfen.")
     if r.status_code != 200:
-        raise AIUnavailable(f"KI-Anbieter meldet Fehler {r.status_code}: {r.text[:200]}")
+        text = r.text[:400]
+        if "signal: killed" in text or "out of memory" in text.lower() or "requires more system memory" in text:
+            raise AIUnavailable(
+                "Das lokale KI-Modell wurde beendet, weil der Arbeitsspeicher des Servers nicht reicht. "
+                "Bitte ein kleineres Modell wählen, z. B. auf dem Server: sudo ./scripts/ki-modell.sh qwen2.5:3b"
+            )
+        if "not found" in text and "model" in text:
+            raise AIUnavailable(f"Das Modell „{model}“ ist nicht installiert. Auf dem Server: sudo ./scripts/ki-modell.sh {model}")
+        raise AIUnavailable(f"KI-Anbieter meldet Fehler {r.status_code}: {text[:200]}")
     data = r.json()
     if not data.get("choices"):
         raise AIUnavailable("Leere Antwort vom KI-Anbieter.")

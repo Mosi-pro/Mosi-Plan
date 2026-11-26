@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarCheck, History, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
+import { AlertTriangle, CalendarCheck, History, RefreshCw, MessageSquareText, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Markdown } from "@/components/markdown";
 import { useToast } from "@/components/toast";
@@ -101,7 +101,7 @@ function PlanView({ plan }: { plan: Plan }) {
           {d.deadlines.length > 0 && <Panel title="Kritische Deadlines"><ul className="px-4 py-3 space-y-1.5">{d.deadlines.map((x) => <li key={x.type + x.id} className="flex gap-3 text-sm"><span className="w-14 tnum text-ink-3 shrink-0">{dateShort(x.date)}</span><span className="text-ink">{x.title}</span></li>)}</ul></Panel>}
           {d.carryover.length > 0 && <Panel title="Offen aus der Vorwoche"><ul className="px-4 py-3 space-y-1.5 text-sm text-ink-2">{d.carryover.map((c) => <li key={c.task_id}>{c.title}</li>)}</ul></Panel>}
           {d.unscheduled.length > 0 && <Panel title="Nicht eingeplant"><ul className="px-4 py-3 space-y-2 text-sm">{d.unscheduled.map((u) => <li key={u.task_id}><div className="text-ink">{u.title}</div><div className="text-ink-3">{u.reason}, {minutes(u.minutes)} offen</div></li>)}</ul></Panel>}
-          <Panel title="Empfehlungen" action={<Button size="sm" variant="ghost" loading={ai.isPending} onClick={() => ai.mutate()}><Sparkles className="h-3.5 w-3.5 text-accent" />MOSI fragen</Button>}>
+          <Panel title="Empfehlungen" action={<Button size="sm" variant="ghost" loading={ai.isPending} onClick={() => ai.mutate()}><MessageSquareText className="h-3.5 w-3.5 text-accent" />MOSI fragen</Button>}>
             <div className="px-4 py-3 space-y-3 text-sm text-ink-2">
               {d.recommendations.length ? <ul className="list-disc pl-4 space-y-1">{d.recommendations.map((r, i) => <li key={i}>{r}</li>)}</ul> : <p>Keine Auffälligkeiten.</p>}
               {d.ai_notes && <div className="border-t border-line pt-3"><Markdown text={d.ai_notes} className="space-y-1.5" /></div>}
@@ -146,7 +146,7 @@ export default function WeeklyPlan() {
       <Segmented value={tab} onChange={(v) => { setTab(v); setHistId(null); }} className="mb-6" options={[{ value: "this_week", label: "Diese Woche" }, { value: "next_week", label: "Nächste Woche" }, { value: "history", label: "Verlauf" }]} />
       {tab !== "history" && (cur.isLoading ? <Skeleton className="h-96" /> : slot?.plan ? <PlanView plan={slot.plan} /> : (
         <Panel><Empty icon={CalendarCheck} title={`Noch kein Plan für die Woche ab ${slot ? dateShort(slot.week_start) : ""}`} text="MOSI berücksichtigt Termine, offene Aufgaben, Deadlines, Prioritäten und deine Planungsregeln."
-          action={<Button variant="primary" loading={gen.isPending} onClick={() => slot && gen.mutate(slot.week_start)}><Sparkles className="h-4 w-4" />Wochenplan erstellen</Button>} /></Panel>
+          action={<Button variant="primary" loading={gen.isPending} onClick={() => slot && gen.mutate(slot.week_start)}><MessageSquareText className="h-4 w-4" />Wochenplan erstellen</Button>} /></Panel>
       ))}
       {tab === "history" && (histId ? (
         <div><Button variant="ghost" size="sm" className="mb-4" onClick={() => setHistId(null)}>Zurück zum Verlauf</Button>{histPlan.data ? <PlanView plan={histPlan.data} /> : <Skeleton className="h-96" />}</div>

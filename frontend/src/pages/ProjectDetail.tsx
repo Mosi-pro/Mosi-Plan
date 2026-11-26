@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, MoreHorizontal, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, MoreHorizontal, Pencil, Plus, MessageSquareText, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useCreate } from "@/components/dialogs";
@@ -54,7 +54,7 @@ export default function ProjectDetail() {
             <MenuTrigger asChild><Button variant="secondary" size="icon" aria-label="Weitere Aktionen"><MoreHorizontal className="h-4 w-4" /></Button></MenuTrigger>
             <MenuContent>
               <MenuItem icon={Pencil} onSelect={() => create.editProject(p)}>Bearbeiten</MenuItem>
-              <MenuItem icon={Sparkles} onSelect={() => nav(`/assistent?q=${encodeURIComponent(`Erstelle für mein Projekt ${p.name} einen vollständigen Entwicklungsplan.`)}`)}>Plan mit MOSI erstellen</MenuItem>
+              <MenuItem icon={MessageSquareText} onSelect={() => nav(`/assistent?q=${encodeURIComponent(`Erstelle für mein Projekt ${p.name} einen vollständigen Entwicklungsplan.`)}`)}>Plan mit MOSI erstellen</MenuItem>
               <MenuItem icon={Trash2} danger onSelect={() => setDel(true)}>Löschen</MenuItem>
             </MenuContent>
           </Menu>
@@ -85,7 +85,7 @@ export default function ProjectDetail() {
           </Panel>
         </div>
         <div className="space-y-6">
-          <Panel title="KI-Zusammenfassung" action={<Button size="sm" variant="ghost" loading={summary.isPending} onClick={() => summary.mutate()}><Sparkles className="h-3.5 w-3.5 text-accent" />{p.ai_summary ? "Aktualisieren" : "Erstellen"}</Button>}>
+          <Panel title="KI-Zusammenfassung" action={<Button size="sm" variant="ghost" loading={summary.isPending} onClick={() => summary.mutate()}><MessageSquareText className="h-3.5 w-3.5 text-accent" />{p.ai_summary ? "Aktualisieren" : "Erstellen"}</Button>}>
             <div className="px-4 py-3 text-sm text-ink-2">
               {p.ai_summary ? <><Markdown text={p.ai_summary} className="space-y-2" /><div className="text-xs text-ink-3 mt-2">{ago(p.ai_summary_at!)}</div></> : "Noch keine Zusammenfassung."}
             </div>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUp, ArrowDown, CalendarDays, CheckSquare, FolderKanban, MapPin, Settings2, Sparkles } from "lucide-react";
+import { ArrowUp, ArrowDown, CalendarDays, CheckSquare, FolderKanban, MapPin, Settings2, MessageSquareText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCreate } from "@/components/dialogs";
@@ -139,9 +139,9 @@ export default function Dashboard() {
         {d.active_projects.length ? (
           <div className="divide-y divide-line/70">
             {d.active_projects.slice(0, 6).map((p) => (
-              <Link key={p.id} to={`/projekte/${p.id}`} className="grid grid-cols-[1fr_auto] sm:grid-cols-[minmax(0,1fr)_140px_90px] items-center gap-x-6 gap-y-1.5 px-4 py-3 hover:bg-raised/60">
+              <Link key={p.id} to={`/projekte/${p.id}`} className="grid grid-cols-[1fr_auto] sm:grid-cols-[minmax(0,1fr)_160px_90px] items-center gap-x-6 gap-y-1.5 px-4 py-3 hover:bg-raised/60">
                 <div className="flex items-center gap-2.5 min-w-0"><span className="h-2.5 w-2.5 rounded-[3px] shrink-0" style={{ background: p.color }} /><span className="truncate text-base text-ink">{p.name}</span></div>
-                <div className="flex items-center gap-2 col-span-2 sm:col-span-1 order-last sm:order-none"><Progress value={p.progress} /><span className="text-xs text-ink-3 tnum w-8 text-right">{p.progress} %</span></div>
+                <div className="flex items-center gap-2 col-span-2 sm:col-span-1 order-last sm:order-none"><Progress value={p.progress} /><span className="text-xs text-ink-3 tnum w-10 text-right whitespace-nowrap">{p.progress} %</span></div>
                 <div className="text-sm text-ink-3 text-right tnum">{p.task_open} offen</div>
               </Link>
             ))}
@@ -188,24 +188,29 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-4">
-        <div className="text-sm text-ink-3">{d ? dateLong(d.date) : <Skeleton className="h-4 w-48" />}</div>
-        <Button variant="ghost" size="sm" onClick={() => setCustomize(true)}><Settings2 className="h-4 w-4" />Anpassen</Button>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-sm text-ink-3">{d ? dateLong(d.date) : <Skeleton className="h-4 w-48" />}</div>
+          <h1 className="mt-1 text-2xl font-semibold text-ink">{d ? d.headline : <Skeleton className="h-8 w-64" />}</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="md:hidden"><MicButton /></div>
+          <Button variant="secondary" size="md" onClick={() => nav("/assistent")}><MessageSquareText className="h-4 w-4" />Assistent</Button>
+          <Button variant="ghost" size="icon" aria-label="Übersicht anpassen" onClick={() => setCustomize(true)}><Settings2 className="h-4 w-4" /></Button>
+        </div>
       </div>
 
       {visible("summary") && (
-        <div className="mt-3 max-w-[64ch]">
-          {d ? <h1 className="text-xl md:text-2xl font-medium text-ink leading-snug text-balance">{d.summary}</h1> : <div className="space-y-2"><Skeleton className="h-7 w-full" /><Skeleton className="h-7 w-2/3" /></div>}
-        </div>
+        <section className="mt-6 rounded-md border border-line bg-surface px-5 py-4">
+          <div className="text-xs font-medium text-ink-3 mb-1.5">Tageslage</div>
+          {d ? <p className="text-md text-ink leading-relaxed max-w-[75ch]">{d.summary}</p> : <Skeleton className="h-6 w-full" />}
+          <div className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3">
+            <Button variant="ghost" size="sm" onClick={() => create.newTask()}><CheckSquare className="h-4 w-4" />Aufgabe</Button>
+            <Button variant="ghost" size="sm" onClick={() => create.newEvent()}><CalendarDays className="h-4 w-4" />Termin</Button>
+            <Button variant="ghost" size="sm" onClick={() => create.newProject()}><FolderKanban className="h-4 w-4" />Projekt</Button>
+          </div>
+        </section>
       )}
-
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <MicButton />
-        <Button variant="secondary" onClick={() => nav("/assistent")}><Sparkles className="h-4 w-4 text-accent" />KI fragen</Button>
-        <Button variant="ghost" onClick={() => create.newTask()}><CheckSquare className="h-4 w-4" />Neue Aufgabe</Button>
-        <Button variant="ghost" onClick={() => create.newEvent()}><CalendarDays className="h-4 w-4" />Neuer Termin</Button>
-        <Button variant="ghost" onClick={() => create.newProject()}><FolderKanban className="h-4 w-4" />Neues Projekt</Button>
-      </div>
 
       {visible("today_events") && (
         <section className="mt-8">

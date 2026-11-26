@@ -84,7 +84,9 @@ services:
       OLLAMA_KEEP_ALIVE: "24h"          # Modell im RAM halten -> schnellere Antworten
       OLLAMA_NUM_PARALLEL: "1"
       OLLAMA_MAX_LOADED_MODELS: "1"
-      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-8192}"
+      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-6144}"
+      OLLAMA_FLASH_ATTENTION: "1"       # weniger Arbeitsspeicher
+      OLLAMA_KV_CACHE_TYPE: "q8_0"      # halbierter Kontext-Speicher
     volumes:
       - ./data/ollama:/root/.ollama
     logging: *logging

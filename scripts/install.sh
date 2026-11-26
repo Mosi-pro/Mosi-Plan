@@ -64,11 +64,15 @@ else
   read -r -p "Auswahl [1]: " P; P=${P:-1}
   PROVIDER=""; MODEL=""; BASE=""; KEY=""; PROFILES="hermes"; AIMODE="hermes"; CTX=8192
   if [ "$P" = "1" ]; then
-    PROVIDER=custom; BASE="http://ollama:11434/v1"; PROFILES="hermes,ollama"; AIMODE="direct"
-    # Modell nach Arbeitsspeicher wählen (Qwen 2.5 unterstützt Werkzeugaufrufe in Ollama)
-    if [ "$MEM_MB" -ge 14000 ]; then MODEL="qwen2.5:7b"; CTX=16384
-    elif [ "$MEM_MB" -ge 7000 ]; then MODEL="qwen2.5:7b"; CTX=8192
-    else MODEL="qwen2.5:3b"; CTX=8192; fi
+    PROVIDER=custom; BASE="http://ollama:11434/v1"; AIMODE="direct"
+    # Modell nach Arbeitsspeicher wählen – mit Reserve für Datenbank, Backend und System.
+    # (Qwen 2.5 unterstützt Werkzeugaufrufe in Ollama)
+    if [ "$MEM_MB" -ge 15000 ]; then MODEL="qwen2.5:7b"; CTX=8192; PROFILES="hermes,ollama"
+    elif [ "$MEM_MB" -ge 11000 ]; then MODEL="qwen2.5:7b"; CTX=6144; PROFILES="ollama"
+    elif [ "$MEM_MB" -ge 5500 ]; then MODEL="qwen2.5:3b"; CTX=6144; PROFILES="ollama"
+    else MODEL="qwen2.5:1.5b"; CTX=4096; PROFILES="ollama"
+      c_warn "Sehr wenig Arbeitsspeicher – das kleinste Modell wird verwendet; die Qualität ist eingeschränkt."; fi
+    [ "$PROFILES" = "ollama" ] && c_info "Hermes Agent wird wegen des Arbeitsspeichers nicht gestartet (später aktivierbar, siehe docs/KI_HERMES.md)."
     c_info "Arbeitsspeicher ${MEM_MB} MB -> lokales Modell ${MODEL} (Kontext ${CTX})"
     read -r -p "Anderes Ollama-Modell verwenden? (leer = ${MODEL}): " M2; MODEL=${M2:-$MODEL}
     KEY="ollama"

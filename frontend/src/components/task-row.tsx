@@ -1,4 +1,4 @@
-import { CornerDownRight, Repeat, Sparkles } from "lucide-react";
+import { CornerDownRight, Repeat, MessageSquareText } from "lucide-react";
 import { minutes, relDay, TASK_STATUS } from "@/lib/format";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ export function TaskRow({ task, showProject = true, dense }: { task: Task; showP
       {task.parent_id && <CornerDownRight className="h-3.5 w-3.5 text-ink-3 -ml-1" />}
       <div className="min-w-0 flex-1 flex items-center gap-2">
         <span className={cn("truncate text-base", done ? "text-ink-3 line-through" : "text-ink")}>{task.title}</span>
-        {task.origin === "assistant" && <Sparkles className="h-3 w-3 text-ink-3 shrink-0" aria-label="Vom Assistenten erstellt" />}
+        {task.origin === "assistant" && <MessageSquareText className="h-3 w-3 text-ink-3 shrink-0" aria-label="Vom Assistenten erstellt" />}
         {task.subtask_total > 0 && <span className="text-xs text-ink-3 tnum shrink-0">{task.subtask_done}/{task.subtask_total}</span>}
         {task.status === "waiting" && <span className="text-xs text-warn shrink-0">{TASK_STATUS.waiting}</span>}
         {task.status === "in_progress" && <span className="text-xs text-accent-ink shrink-0">{TASK_STATUS.in_progress}</span>}

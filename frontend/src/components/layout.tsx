@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Command } from "cmdk";
 import {
   Bell, BookMarked, CalendarDays, CalendarRange, CheckSquare, FolderKanban, LayoutGrid, LogOut, Menu as MenuIcon, MessageSquare, Mic, Plus, Search,
-  Settings, Sparkles, User as UserIcon, X,
+  Settings, MessageSquareText, User as UserIcon, X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -176,15 +176,15 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           <Command shouldFilter={!data} loop>
             <div className="flex items-center gap-3 px-4 border-b border-line">
               <Search className="h-4 w-4 text-ink-3" />
-              <Command.Input value={q} onValueChange={setQ} autoFocus placeholder="Suchen, Befehl eingeben oder MOSI fragen …" className="h-12 flex-1 bg-transparent text-md text-ink placeholder:text-ink-3 outline-none" />
+              <Command.Input value={q} onValueChange={setQ} autoFocus placeholder="Suchen, Befehl eingeben oder Assistenten fragen …" className="h-12 flex-1 bg-transparent text-md text-ink placeholder:text-ink-3 outline-none" />
               <Kbd>Esc</Kbd>
             </div>
             <Command.List className="max-h-[min(440px,60vh)] overflow-y-auto pb-2">
               <Command.Empty className="px-4 py-6 text-sm text-ink-3">Keine Treffer.</Command.Empty>
               {q.trim().length > 2 && (
-                <Command.Group heading="MOSI fragen" className={group} forceMount>
+                <Command.Group heading="Assistent" className={group} forceMount>
                   <Command.Item value={`__ask ${q}`} forceMount className={item} onSelect={() => run(() => nav(`/assistent?q=${encodeURIComponent(q.trim())}`))}>
-                    <Sparkles className="h-4 w-4 text-accent" /><span className="truncate">„{q.trim()}“</span>
+                    <MessageSquareText className="h-4 w-4 text-accent" /><span className="truncate">„{q.trim()}“</span>
                   </Command.Item>
                 </Command.Group>
               )}
@@ -247,7 +247,7 @@ function Topbar({ onSearch, onMenu }: { onSearch: () => void; onMenu: () => void
       <Button variant="ghost" size="icon" className="md:hidden -ml-2" aria-label="Menü öffnen" onClick={onMenu}><MenuIcon className="h-5 w-5" /></Button>
       <Logo className="md:hidden" />
       <button onClick={onSearch} className="hidden md:flex items-center gap-2.5 h-9 w-full max-w-[420px] px-3 rounded border border-line bg-surface text-sm text-ink-3 hover:border-line-strong transition-colors">
-        <Search className="h-4 w-4" />Suchen oder MOSI fragen<span className="ml-auto flex gap-1"><Kbd>Strg</Kbd><Kbd>K</Kbd></span>
+        <Search className="h-4 w-4" />Suchen oder Befehl eingeben<span className="ml-auto flex gap-1"><Kbd>Strg</Kbd><Kbd>K</Kbd></span>
       </button>
       <div className="ml-auto flex items-center gap-1">
         <Button variant="ghost" size="icon" className="md:hidden" aria-label="Suchen" onClick={onSearch}><Search className="h-4 w-4" /></Button>
@@ -293,7 +293,7 @@ function MobileNav() {
       <div className="flex h-16 items-stretch px-2">
         {item("/", "Heute", LayoutGrid, true)}
         {item("/kalender", "Kalender", CalendarDays)}
-        <div className="flex flex-1 items-center justify-center"><MicButton size="lg" className="-mt-7 shadow-[0_6px_20px_-4px_rgb(91_141_239/0.6)] ring-4 ring-canvas" /></div>
+        <div className="flex flex-1 items-center justify-center"><MicButton size="lg" className="-mt-7 ring-4 ring-rail" /></div>
         {item("/aufgaben", "Aufgaben", CheckSquare)}
         {item("/assistent", "Assistent", MessageSquare)}
       </div>

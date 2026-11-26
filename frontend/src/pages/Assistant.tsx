@@ -60,13 +60,13 @@ export default function Assistant() {
     let id = cid;
     if (!id) { const c = await api.post<Conv>("/api/conversations"); id = c.id; setParams({ c: String(id) }); }
     setInput("");
-    setLive({ user: content, text: "", status: "MOSI denkt nach …", actions: [] });
+    setLive({ user: content, text: "", status: "Wird verarbeitet …", actions: [] });
     try {
       let acc = "";
       const done = await streamChat(id!, content, false, (ev) => {
         if (ev.type === "delta") { acc += ev.text; setLive((l) => l && { ...l, text: acc, status: "" }); }
         if (ev.type === "tool") setLive((l) => l && { ...l, status: `${ev.label} …` });
-        if (ev.type === "backend" && ev.name === "direct") setLive((l) => l && { ...l, status: "MOSI denkt nach (direkter Anbieter) …" });
+        if (ev.type === "backend" && ev.name === "direct") setLive((l) => l && { ...l, status: "Wird verarbeitet …" });
       });
       setLive((l) => l && { ...l, text: done.content, error: done.error, actions: done.pending_actions, status: "" });
       await qc.invalidateQueries({ queryKey: ["conversation", id] });
@@ -135,9 +135,10 @@ export default function Assistant() {
           <div className="max-w-[760px] mx-auto px-4 md:px-6 py-6 space-y-6">
             {empty && (
               <div className="pt-6 md:pt-14">
-                <h2 className="text-xl font-semibold">Womit kann ich helfen?</h2>
-                <p className="text-base text-ink-2 mt-1">MOSI kennt deine Projekte, Aufgaben, Termine und gespeicherten Regeln.</p>
-                <div className="mt-6 grid gap-2">
+                <h2 className="text-xl font-semibold">Assistent</h2>
+                <p className="text-base text-ink-2 mt-1">Zugriff auf Projekte, Aufgaben, Termine und gespeicherte Regeln. Änderungen mit Tragweite werden erst nach deiner Bestätigung ausgeführt.</p>
+                <div className="mt-6 text-xs font-medium text-ink-3">Beispiele</div>
+                <div className="mt-2 grid gap-2">
                   {EXAMPLES.map((e) => (
                     <button key={e} onClick={() => send(e)} className="text-left rounded border border-line px-3.5 py-2.5 text-base text-ink-2 hover:text-ink hover:border-line-strong hover:bg-surface transition-colors">{e}</button>
                   ))}
@@ -160,7 +161,7 @@ export default function Assistant() {
         </div>
         <div className="border-t border-line px-4 md:px-6 py-3">
           <form className="max-w-[760px] mx-auto flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); send(input); }}>
-            <Textarea value={input} onChange={(e) => setInput(e.target.value)} rows={1} placeholder="Nachricht an MOSI …" aria-label="Nachricht"
+            <Textarea value={input} onChange={(e) => setInput(e.target.value)} rows={1} placeholder="Anfrage eingeben …" aria-label="Nachricht"
               className="min-h-[40px] max-h-40 py-2 resize-none"
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }} />
             <MicButton label={false} className="h-10 w-10 shrink-0" />

@@ -35,7 +35,7 @@ export interface PendingAction { id: number; tool: string; description: string; 
 export interface ChatMessage { id: number; role: "user" | "assistant"; content: string; created_at: string; meta: { backend?: string; tools?: string[]; error?: boolean; voice?: boolean; actions?: PendingAction[] } }
 
 export interface Overview {
-  date: string; date_label: string; greeting: string; name: string; summary: string;
+  date: string; date_label: string; greeting: string; name: string; summary: string; headline: string;
   events_today: CalEvent[]; upcoming_events: CalEvent[]; tasks_today: Task[]; overdue: Task[];
   deadlines: { type: "task" | "project"; id: number; title: string; date: string; project_name: string | null; priority: Priority }[];
   active_projects: Project[];

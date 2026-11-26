@@ -247,8 +247,8 @@ function StatusSteps({ state }: { state: VoiceState }) {
 }
 
 const HEADLINE: Record<VoiceState, string> = {
-  idle: "", recording: "Ich höre zu …", transcribing: "Sprache wird erkannt …", thinking: "MOSI denkt nach …",
-  acting: "Aktion wird ausgeführt …", speaking: "Antwort wird gesprochen", done: "Fertig", error: "Das hat nicht geklappt",
+  idle: "", recording: "Aufnahme läuft", transcribing: "Sprache wird erkannt", thinking: "Anfrage wird verarbeitet",
+  acting: "Aktion wird ausgeführt", speaking: "Antwort wird vorgelesen", done: "Abgeschlossen", error: "Fehler",
 };
 
 function VoiceSheet() {
@@ -287,7 +287,7 @@ function VoiceSheet() {
 
           {v.reply && (
             <div className="mt-5 border-t border-line pt-4 text-base text-ink-2">
-              <div className="text-xs text-ink-3 mb-1.5">MOSI</div>
+              <div className="text-xs text-ink-3 mb-1.5">Antwort</div>
               <Markdown text={v.reply} />
             </div>
           )}
@@ -308,9 +308,9 @@ function VoiceSheet() {
               <Button variant="secondary" onClick={() => { stopSpeaking(); }}><VolumeX className="h-4 w-4" /> Vorlesen stoppen</Button>
             )}
             {(v.state === "done" || v.state === "error") && (
-              <Button variant="primary" onClick={v.start}>{v.state === "error" ? <RotateCcw className="h-4 w-4" /> : <Mic className="h-4 w-4" />}{v.state === "error" ? "Erneut versuchen" : "Weiter sprechen"}</Button>
+              <Button variant="primary" onClick={v.start}>{v.state === "error" ? <RotateCcw className="h-4 w-4" /> : <Mic className="h-4 w-4" />}{v.state === "error" ? "Erneut versuchen" : "Neue Spracheingabe"}</Button>
             )}
-            {busy && <span className="text-sm text-ink-3">Bitte einen Moment …</span>}
+            {busy && <span className="text-sm text-ink-3">Wird bearbeitet</span>}
           </div>
         </div>
       </div>
@@ -330,13 +330,13 @@ export function MicButton({ className, size = "md", label = true }: { className?
       className={cn(
         "relative inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors",
         size === "lg" ? "h-14 w-14" : label ? "h-9 px-3.5" : "h-9 w-9",
-        rec ? "bg-danger text-white" : "bg-accent text-white hover:bg-accent/90",
+        rec ? "bg-danger text-white" : size === "lg" ? "bg-accent text-white hover:bg-accent/90" : "bg-raised text-ink border border-line-strong hover:border-ink-3/60",
         className,
       )}
     >
       {rec && <span className="absolute inset-0 rounded-full ring-4 ring-danger/30 animate-pulse" aria-hidden />}
-      {rec ? <Square className={size === "lg" ? "h-5 w-5 fill-current" : "h-3.5 w-3.5 fill-current"} /> : <Mic className={size === "lg" ? "h-6 w-6" : "h-4 w-4"} />}
-      {label && size !== "lg" && <span className="text-sm">{rec ? "Stopp" : "Sprechen"}</span>}
+      {rec ? <Square className={size === "lg" ? "h-5 w-5 fill-current" : "h-3.5 w-3.5 fill-current"} /> : <Mic className={size === "lg" ? "h-6 w-6" : "h-4 w-4 text-accent"} />}
+      {label && size !== "lg" && <span className="text-sm">{rec ? "Aufnahme beenden" : "Spracheingabe"}</span>}
     </button>
   );
 }

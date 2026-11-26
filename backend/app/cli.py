@@ -39,6 +39,10 @@ def main() -> None:
     r.add_argument("--username", required=True)
     sub.add_parser("wait-db")
     sub.add_parser("has-admin")
+    m = sub.add_parser("set-ai-model")
+    m.add_argument("--model", required=True)
+    m.add_argument("--base-url", default="")
+    m.add_argument("--mode", default="")
     a = p.parse_args()
 
     if a.cmd == "wait-db":
@@ -56,6 +60,17 @@ def main() -> None:
     try:
         if a.cmd == "has-admin":
             sys.exit(0 if db.scalars(select(User)).first() else 1)
+        if a.cmd == "set-ai-model":
+            from .services import settings_store as st
+
+            patch = {"direct_model": a.model}
+            if a.base_url:
+                patch["direct_base_url"] = a.base_url
+            if a.mode:
+                patch["mode"] = a.mode
+            st.update_section(db, "ai", patch)
+            print(f"KI-Modell auf „{a.model}“ gesetzt.")
+            return
         if a.cmd == "create-admin":
             if db.scalars(select(User)).first():
                 sys.exit("Es existiert bereits ein Benutzer. MOSI PLAN ist eine Einzelbenutzer-Anwendung (reset-password verwenden).")
