@@ -212,52 +212,152 @@ def run_hermes(messages: list[dict]) -> Iterator[dict]:
 
 
 # ----------------------------------------------------------------- Direkter Anbieter
+OVERLOAD = (502, 503, 504, 529)
+
+
+def _headers(key: str) -> dict:
+    h = {"Content-Type": "application/json"}
+    if key:
+        h["Authorization"] = f"Bearer {key}"
+    return h
+
+
+def _post_chat(base: str, key: str, body: dict, timeout: float) -> httpx.Response:
+    return httpx.post(base + "/chat/completions", json=body, headers=_headers(key), timeout=timeout)
+
+
+def _explain(status: int, text: str, model: str) -> str:
+    if "signal: killed" in text or "out of memory" in text.lower() or "requires more system memory" in text:
+        return ("Das lokale KI-Modell wurde beendet, weil der Arbeitsspeicher des Servers nicht reicht. "
+                "Bitte ein kleineres Modell wählen, z. B. auf dem Server: sudo ./scripts/ki-modell.sh qwen2.5:3b")
+    if status in OVERLOAD:
+        return f"„{model}“ ist beim Anbieter gerade überlastet"
+    if status == 429:
+        return f"„{model}“: Limit des kostenlosen Kontingents erreicht (429)"
+    if status in (401, 403):
+        return "Der API-Schlüssel wird vom Anbieter abgelehnt. Bitte unter Einstellungen → KI prüfen."
+    if status == 404:
+        return f"„{model}“ ist beim Anbieter nicht (mehr) verfügbar"
+    return f"„{model}“: Fehler {status}: {text[:160]}"
+
+
 def _direct_call(db: Session, messages: list[dict], tools: list[dict] | None) -> dict:
+    """Ruft den direkten Anbieter auf. Bei Überlastung/Limit/fehlendem Modell wird automatisch
+    das nächste Ausweichmodell (Einstellungen → KI) verwendet."""
     conf = direct_config(db)
     if not conf:
         raise AIUnavailable("Kein direkter KI-Anbieter konfiguriert.")
     base, key, model = conf
-    body: dict = {"model": model, "messages": messages, "temperature": st.get_section(db, "ai").get("temperature", 0.3)}
-    if tools:
-        body["tools"] = tools
-        body["tool_choice"] = "auto"
-    headers = {"Content-Type": "application/json"}
-    if key:
-        headers["Authorization"] = f"Bearer {key}"
-    # Kurze Überlastungen (503/502/529) automatisch abfangen: bis zu 3 Versuche mit Wartezeit
-    r = None
-    for attempt in range(3):
-        try:
-            r = httpx.post(base + "/chat/completions", json=body, headers=headers, timeout=get_settings().ai_timeout_seconds)
-        except httpx.HTTPError as exc:
-            if attempt == 2:
-                raise AIUnavailable(f"KI-Anbieter nicht erreichbar: {exc.__class__.__name__}") from exc
-            time.sleep(2 + attempt * 3)
+    cfg = st.get_section(db, "ai")
+    models = [model] + [m for m in (cfg.get("fallback_models") or []) if m and m != model]
+    problems: list[str] = []
+    for m in models:
+        body: dict = {"model": m, "messages": messages, "temperature": cfg.get("temperature", 0.3)}
+        if tools:
+            body["tools"] = tools
+            body["tool_choice"] = "auto"
+        r = None
+        for attempt in range(2):
+            try:
+                r = _post_chat(base, key, body, get_settings().ai_timeout_seconds)
+            except httpx.HTTPError as exc:
+                r = None
+                last = f"„{m}“: Anbieter nicht erreichbar ({exc.__class__.__name__})"
+                time.sleep(2)
+                continue
+            if r.status_code in OVERLOAD and attempt == 0:
+                time.sleep(3)
+                continue
+            break
+        if r is None:
+            problems.append(last)
             continue
-        if r.status_code in (502, 503, 529) and attempt < 2:
-            time.sleep(2 + attempt * 3)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get("choices"):
+                if m != model:
+                    log.info("Ausweichmodell %s verwendet (Hauptmodell %s nicht verfügbar)", m, model)
+                return data["choices"][0]["message"]
+            problems.append(f"„{m}“: leere Antwort")
             continue
-        break
-    if r.status_code in (502, 503, 529):
-        raise AIUnavailable("Der KI-Anbieter ist gerade überlastet (vorübergehend). Bitte in einigen Minuten erneut versuchen oder unter Einstellungen → KI ein anderes Modell wählen.")
-    if r.status_code == 429:
-        raise AIUnavailable("Der KI-Anbieter meldet ein Limit (429). Bitte später erneut versuchen oder Tarif/Limits beim Anbieter prüfen.")
-    if r.status_code != 200:
         text = r.text[:400]
-        if "signal: killed" in text or "out of memory" in text.lower() or "requires more system memory" in text:
-            raise AIUnavailable(
-                "Das lokale KI-Modell wurde beendet, weil der Arbeitsspeicher des Servers nicht reicht. "
-                "Bitte ein kleineres Modell wählen, z. B. auf dem Server: sudo ./scripts/ki-modell.sh qwen2.5:3b"
-            )
-        if r.status_code == 404 and "model" in text.lower():
-            raise AIUnavailable(f"Das Modell „{model}“ ist beim Anbieter nicht (mehr) verfügbar. Bitte unter Einstellungen → KI einen aktuellen Modellnamen eintragen. Antwort des Anbieters: {text[:200]}")
-        if "not found" in text and "model" in text:
-            raise AIUnavailable(f"Das Modell „{model}“ ist nicht installiert. Auf dem Server: sudo ./scripts/ki-modell.sh {model}")
-        raise AIUnavailable(f"KI-Anbieter meldet Fehler {r.status_code}: {text[:200]}")
-    data = r.json()
-    if not data.get("choices"):
-        raise AIUnavailable("Leere Antwort vom KI-Anbieter.")
-    return data["choices"][0]["message"]
+        if r.status_code in (401, 403) or "signal: killed" in text:
+            raise AIUnavailable(_explain(r.status_code, text, m))
+        if r.status_code == 400 and tools and "schema" in text.lower():
+            problems.append(f"„{m}“ akzeptiert die Werkzeugbeschreibung nicht")
+            continue
+        problems.append(_explain(r.status_code, text, m))
+    hint = " Tipp: Unter Einstellungen → KI „Passendes Modell automatisch finden“ verwenden."
+    raise AIUnavailable("Keine Antwort von der KI. " + "; ".join(problems) + "." + hint)
+
+
+def list_models(db: Session) -> list[str]:
+    """Fragt beim Anbieter ab, welche Modelle der Schlüssel nutzen darf (OpenAI-kompatibel: GET /models)."""
+    conf = direct_config(db) or (st.get_section(db, "ai").get("direct_base_url"), st.get_secret(db, "ai.direct_api_key"), "")
+    base, key = (conf[0] or "").rstrip("/"), conf[1]
+    if not base:
+        raise AIUnavailable("Bitte zuerst die Basis-URL eintragen und speichern.")
+    try:
+        r = httpx.get(base + "/models", headers=_headers(key), timeout=20)
+    except httpx.HTTPError as exc:
+        raise AIUnavailable(f"Anbieter nicht erreichbar: {exc.__class__.__name__}") from exc
+    if r.status_code in (401, 403):
+        raise AIUnavailable("Der API-Schlüssel wird vom Anbieter abgelehnt.")
+    if r.status_code != 200:
+        raise AIUnavailable(f"Modellliste konnte nicht geladen werden (Fehler {r.status_code}).")
+    ids = []
+    for item in r.json().get("data", r.json().get("models", [])):
+        mid = item.get("id") or item.get("name") or ""
+        mid = mid.removeprefix("models/")
+        if mid:
+            ids.append(mid)
+    return sorted(set(ids))
+
+
+_SKIP = ("embed", "image", "imagen", "tts", "audio", "speech", "whisper", "veo", "lyria", "live", "aqa", "robotics", "vision-only", "guard", "moderation", "transcribe")
+
+
+def _rank(mid: str) -> tuple:
+    n = mid.lower()
+    return (
+        0 if "flash" in n else 1,
+        0 if "lite" in n else 1,          # leichte Modelle sind im Gratis-Tarif seltener überlastet
+        1 if ("preview" in n or "exp" in n) else 0,
+        n,
+    )
+
+
+def autoselect_model(db: Session, max_tests: int = 10) -> dict:
+    """Testet passende Modelle nacheinander und stellt das erste funktionierende ein."""
+    conf = direct_config(db)
+    cfg = st.get_section(db, "ai")
+    base = (cfg.get("direct_base_url") or "").rstrip("/")
+    key = st.get_secret(db, "ai.direct_api_key")
+    if not base:
+        raise AIUnavailable("Bitte zuerst Basis-URL und API-Schlüssel speichern.")
+    models = list_models(db)
+    candidates = sorted([m for m in models if not any(x in m.lower() for x in _SKIP)], key=_rank)
+    if conf and conf[2] in candidates:
+        candidates.remove(conf[2])
+        candidates.insert(0, conf[2])
+    tested, working = [], []
+    for m in candidates[:max_tests]:
+        body = {"model": m, "messages": [{"role": "user", "content": "Antworte nur mit OK."}], "max_tokens": 5}
+        try:
+            r = _post_chat(base, key, body, 30)
+            ok = r.status_code == 200 and bool(r.json().get("choices"))
+            tested.append({"model": m, "ok": ok, "status": r.status_code})
+        except httpx.HTTPError:
+            ok = False
+            tested.append({"model": m, "ok": False, "status": 0})
+        if ok:
+            working.append(m)
+            if len(working) >= 3:
+                break
+    if not working:
+        return {"ok": False, "tested": tested, "available": len(models)}
+    st.update_section(db, "ai", {"direct_model": working[0], "fallback_models": working[1:], "mode": "direct" if cfg["mode"] == "off" else cfg["mode"]})
+    return {"ok": True, "model": working[0], "fallbacks": working[1:], "tested": tested, "available": len(models)}
 
 
 def run_direct(db: Session, user: User, conv_id: int | None, messages: list[dict]) -> Iterator[dict]:

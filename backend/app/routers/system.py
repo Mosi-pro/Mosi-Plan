@@ -85,6 +85,11 @@ def _validate(section: str, p: dict) -> None:
         hm("daily_digest_time")
     if section == "ai" and "mode" in p and p["mode"] not in ("hermes", "direct", "off"):
         raise HTTPException(400, "Ungültiger KI-Modus.")
+    if section == "ai" and "fallback_models" in p:
+        fm = p["fallback_models"]
+        if not isinstance(fm, list) or len(fm) > 5 or any(not isinstance(x, str) or len(x) > 120 for x in fm):
+            raise HTTPException(400, "Ausweichmodelle: höchstens 5 Modellnamen.")
+        p["fallback_models"] = [x.strip() for x in fm if x.strip()]
     if section == "voice":
         if "tts_rate" in p and not (0.5 <= float(p["tts_rate"]) <= 2.0):
             raise HTTPException(400, "Sprechgeschwindigkeit zwischen 0,5 und 2,0.")
@@ -104,6 +109,26 @@ def test_ai(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
     except agent.AIUnavailable as exc:
         raise HTTPException(503, str(exc)) from exc
     return {"ok": True, "backend": agent.choose_backend(db), "answer": text_[:200]}
+
+
+@router.get("/settings/ai/models")
+def ai_models(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rate_limit("ai:models", 10, 60)
+    try:
+        return {"models": agent.list_models(db)}
+    except agent.AIUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+@router.post("/settings/ai/autoselect")
+def ai_autoselect(_: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rate_limit("ai:autoselect", 3, 60)
+    try:
+        res = agent.autoselect_model(db)
+    except agent.AIUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    audit(db, "settings.ai_autoselect", f"KI-Modell automatisch gewählt: {res.get('model', 'keins')}")
+    return res
 
 
 # ----------------------------------------------------------------- Benachrichtigungen

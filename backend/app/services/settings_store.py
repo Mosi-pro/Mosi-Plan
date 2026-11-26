@@ -18,6 +18,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "fallback_direct": True,  # bei nicht erreichbarem Hermes direkten Anbieter nutzen
         "direct_base_url": "",
         "direct_model": "",
+        "fallback_models": [],  # Ausweichmodelle bei Überlastung/Limit
         "memory_enabled": True,
         "memory_auto_save": False,  # Assistent speichert nur nach Rückfrage/explizitem Auftrag
         "temperature": 0.3,

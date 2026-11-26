@@ -589,11 +589,38 @@ def _save_memory(ctx: ToolContext, a: SaveMemoryArgs) -> dict:
 
 
 # ======================================================================= Ausführung
+def _flat_schema(model: type[BaseModel]) -> dict:
+    """JSON-Schema ohne $ref/$defs/title – manche Anbieter (z. B. Gemini) unterstützen keine Referenzen."""
+    schema = model.model_json_schema()
+    defs = schema.pop("$defs", {})
+
+    def walk(node):
+        if isinstance(node, dict):
+            if "$ref" in node:
+                return walk(dict(defs[node["$ref"].split("/")[-1]]))
+            out = {}
+            for k, v in node.items():
+                if k == "title" and isinstance(v, str):  # nur Schema-Titel, nicht Eigenschaften namens "title"
+                    continue
+                if k == "anyOf" and isinstance(v, list):
+                    # Optional[X] (X | None) zu X vereinfachen
+                    non_null = [x for x in v if not (isinstance(x, dict) and x.get("type") == "null")]
+                    if len(non_null) == 1:
+                        out.update(walk(non_null[0]))
+                        continue
+                out[k] = walk(v)
+            return out
+        if isinstance(node, list):
+            return [walk(x) for x in node]
+        return node
+
+    return walk(schema)
+
+
 def openai_tools() -> list[dict]:
     out = []
     for t in REGISTRY.values():
-        schema = t.params.model_json_schema()
-        schema.pop("title", None)
+        schema = _flat_schema(t.params)
         out.append({"type": "function", "function": {"name": t.name, "description": t.description, "parameters": schema}})
     return out
 

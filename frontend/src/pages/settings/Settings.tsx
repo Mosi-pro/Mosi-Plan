@@ -70,11 +70,26 @@ function Profile() {
   );
 }
 
+const PRESETS = [
+  { name: "Google Gemini (kostenloses Kontingent)", url: "https://generativelanguage.googleapis.com/v1beta/openai" },
+  { name: "Groq (kostenloses Kontingent)", url: "https://api.groq.com/openai/v1" },
+  { name: "OpenRouter", url: "https://openrouter.ai/api/v1" },
+  { name: "Lokal: Ollama auf diesem Server", url: "http://ollama:11434/v1" },
+];
+
 function AI() {
   const { f, set, save } = useSection("ai");
   const [key, setKey] = useState("");
   const status = useQuery({ queryKey: ["assistant-status"], queryFn: () => api.get<any>("/api/assistant/status") });
   const test = useMutation({ mutationFn: () => api.post<{ backend: string; answer: string }>("/api/settings/ai/test") });
+  const qc = useQueryClient();
+  const auto = useMutation({
+    mutationFn: () => api.post<{ ok: boolean; model?: string; fallbacks: string[]; tested: { model: string; ok: boolean; status: number }[] }>("/api/settings/ai/autoselect"),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["settings"] }); qc.invalidateQueries({ queryKey: ["assistant-status"] }); },
+  });
+  const models = useQuery({ queryKey: ["ai-models"], queryFn: () => api.get<{ models: string[] }>("/api/settings/ai/models"), enabled: false, retry: false });
+  const payload = () => ({ mode: f.mode, fallback_direct: f.fallback_direct, direct_base_url: f.direct_base_url, direct_model: f.direct_model,
+    fallback_models: f.fallback_models ?? [], memory_enabled: f.memory_enabled, ...(key ? { direct_api_key: key } : {}) });
   return (
     <>
       <Row title="Status">
@@ -92,15 +107,43 @@ function AI() {
         <Field label="Modus"><Select value={f.mode} onChange={(e) => set("mode", e.target.value)}><option value="hermes">Hermes Agent</option><option value="direct">Direkter Anbieter (ohne Hermes)</option><option value="off">KI deaktiviert</option></Select></Field>
         <Switch checked={!!f.fallback_direct} onChange={(v) => set("fallback_direct", v)} label="Fallback nutzen" description="Wenn Hermes nicht erreichbar ist, den direkten Anbieter verwenden." />
       </Row>
-      <Row title="Direkter Anbieter" desc="Beliebige OpenAI-kompatible Schnittstelle, z. B. OpenRouter, Ollama, vLLM. Limits und Kosten bitte beim Anbieter prüfen.">
-        <Field label="Basis-URL" hint="z. B. https://openrouter.ai/api/v1 oder http://ollama:11434/v1"><Input value={f.direct_base_url ?? ""} onChange={(e) => set("direct_base_url", e.target.value)} /></Field>
-        <Field label="Modell"><Input value={f.direct_model ?? ""} onChange={(e) => set("direct_model", e.target.value)} placeholder="Modellname des Anbieters" /></Field>
+      <Row title="KI-Anbieter" desc="Beliebige OpenAI-kompatible Schnittstelle. Vorlage wählen, API-Schlüssel eintragen, speichern – dann „Passendes Modell automatisch finden“.">
+        <Field label="Vorlage">
+          <Select value={PRESETS.find((p) => p.url === f.direct_base_url)?.url ?? ""} onChange={(e) => e.target.value && set("direct_base_url", e.target.value)}>
+            <option value="">Eigene Adresse</option>
+            {PRESETS.map((p) => <option key={p.url} value={p.url}>{p.name}</option>)}
+          </Select>
+        </Field>
+        <Field label="Basis-URL"><Input value={f.direct_base_url ?? ""} onChange={(e) => set("direct_base_url", e.target.value)} /></Field>
         <Field label="API-Schlüssel" hint={f.has_direct_api_key ? "Ein Schlüssel ist hinterlegt (verschlüsselt). Leer lassen, um ihn zu behalten." : "Wird verschlüsselt gespeichert und nie im Browser angezeigt."}><Input type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} /></Field>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="primary" loading={save.isPending} onClick={() => save.mutate(payload(), { onSuccess: () => setKey("") })}>Speichern</Button>
+          <Button loading={auto.isPending} onClick={async () => { await save.mutateAsync(payload()); setKey(""); auto.mutate(); }}>Passendes Modell automatisch finden</Button>
+        </div>
+        {auto.data && (auto.data.ok
+          ? <p className="text-sm text-ok">Eingestellt: {auto.data.model}{auto.data.fallbacks.length ? ` (Ausweichmodelle: ${auto.data.fallbacks.join(", ")})` : ""}. {auto.data.tested.length} Modell(e) getestet.</p>
+          : <p className="text-sm text-danger">Keines von {auto.data.tested.length} getesteten Modellen hat geantwortet ({auto.data.tested.map((t) => `${t.model}: ${t.status || "keine Verbindung"}`).join(", ")}). Meist ist das kostenlose Kontingent gerade überlastet – später erneut versuchen oder einen anderen Anbieter wählen.</p>)}
+        <ErrorNote error={auto.error} />
+        <Field label="Modell" hint="Wird bei der automatischen Suche ausgefüllt.">
+          <div className="flex gap-2">
+            {models.data?.models.length ? (
+              <Select value={f.direct_model ?? ""} onChange={(e) => set("direct_model", e.target.value)}>
+                {!models.data.models.includes(f.direct_model) && <option value={f.direct_model}>{f.direct_model || "– bitte wählen –"}</option>}
+                {models.data.models.map((m: string) => <option key={m} value={m}>{m}</option>)}
+              </Select>
+            ) : <Input value={f.direct_model ?? ""} onChange={(e) => set("direct_model", e.target.value)} placeholder="Modellname" />}
+            <Button variant="secondary" loading={models.isFetching} onClick={() => models.refetch()}>Liste laden</Button>
+          </div>
+        </Field>
+        <ErrorNote error={models.error} />
+        <Field label="Ausweichmodelle" hint="Durch Komma getrennt. Werden automatisch genutzt, wenn das Hauptmodell überlastet ist oder das Limit erreicht hat.">
+          <Input value={(f.fallback_models ?? []).join(", ")} onChange={(e) => set("fallback_models", e.target.value.split(",").map((x: string) => x.trim()).filter(Boolean))} />
+        </Field>
       </Row>
       <Row title="Gedächtnis">
         <Switch checked={!!f.memory_enabled} onChange={(v) => set("memory_enabled", v)} label="Gedächtnis verwenden" description="MOSI darf gespeicherte Einträge lesen und auf Wunsch neue speichern." />
       </Row>
-      <div className="pt-4"><Button variant="primary" loading={save.isPending} onClick={() => save.mutate({ mode: f.mode, fallback_direct: f.fallback_direct, direct_base_url: f.direct_base_url, direct_model: f.direct_model, memory_enabled: f.memory_enabled, ...(key ? { direct_api_key: key } : {}) }, { onSuccess: () => setKey("") })}>Speichern</Button></div>
+      <div className="pt-4"><Button variant="primary" loading={save.isPending} onClick={() => save.mutate(payload(), { onSuccess: () => setKey("") })}>Speichern</Button></div>
     </>
   );
 }
