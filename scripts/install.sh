@@ -61,8 +61,14 @@ else
   echo "  2) OpenRouter (extern, Kosten/Limits je nach Modell)"
   echo "  3) Anderer OpenAI-kompatibler Endpunkt"
   echo "  4) Später einrichten"
-  read -r -p "Auswahl [1]: " P; P=${P:-1}
+  DEF=1
+  if [ "$MEM_MB" -lt 5000 ]; then
+    c_warn "Nur ${MEM_MB} MB Arbeitsspeicher: Ein lokales Sprachmodell ist damit nicht sinnvoll nutzbar (empfohlen: mind. 6 GB)."
+    DEF=4
+  fi
+  read -r -p "Auswahl [$DEF]: " P; P=${P:-$DEF}
   PROVIDER=""; MODEL=""; BASE=""; KEY=""; PROFILES="hermes"; AIMODE="hermes"; CTX=8192
+  [ "$MEM_MB" -lt 4000 ] && PROFILES=""   # Hermes bei sehr wenig RAM nicht automatisch starten
   if [ "$P" = "1" ]; then
     PROVIDER=custom; BASE="http://ollama:11434/v1"; AIMODE="direct"
     # Modell nach Arbeitsspeicher wählen – mit Reserve für Datenbank, Backend und System.
