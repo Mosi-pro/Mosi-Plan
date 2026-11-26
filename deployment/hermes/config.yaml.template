@@ -1,0 +1,34 @@
+# Hermes-Agent-Konfiguration für MOSI PLAN (wird von install.sh nach data/hermes/config.yaml kopiert)
+# Referenz: Hermes-Doku "Configuration", "API Server", "MCP Config Reference", "Toolsets Reference".
+model:
+  provider: "__HERMES_PROVIDER__"
+  default: "__HERMES_MODEL__"
+__HERMES_BASE_URL_LINE__
+
+# MOSI PLAN stellt seine Werkzeuge als MCP-Server bereit (nur im internen Docker-Netz).
+mcp_servers:
+  mosi:
+    url: "http://backend:8000/internal/mcp"
+    headers:
+      Authorization: "Bearer ${MOSI_MCP_TOKEN}"
+    timeout: 60
+    connect_timeout: 30
+    skip_preflight: true
+
+# Der API-Server (von MOSI genutzt) erhält AUSSCHLIESSLICH die MOSI-Werkzeuge.
+platform_toolsets:
+  api_server: ["mosi"]
+
+# Sicherheitsnetz: gefährliche Toolsets überall abschalten (kein Shell-, Datei-, Browser- oder Code-Zugriff).
+agent:
+  disabled_toolsets:
+    - terminal
+    - file
+    - code_execution
+    - browser
+    - computer_use
+    - cronjob
+    - delegation
+
+approvals:
+  unattended_mode: deny
