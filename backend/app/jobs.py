@@ -143,7 +143,8 @@ def job_cleanup(db) -> str:
     db.execute(delete(UserSession).where(UserSession.expires_at < now))
     db.query(PendingAction).filter(PendingAction.status == "pending", PendingAction.created_at < now - timedelta(hours=24)).update({PendingAction.status: "expired"})
     db.commit()
-    tmp = "/tmp"
+    # Nur das eigene temporäre Verzeichnis bereinigen – niemals das System-/tmp
+    tmp = os.path.join(get_settings().data_dir, "tmp")
     removed = 0
     if os.path.isdir(tmp):
         for f in os.listdir(tmp):

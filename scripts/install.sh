@@ -118,6 +118,17 @@ EOV
   fi
 fi
 [ -f data/hermes/.env ] || touch data/hermes/.env
+# Selbstsigniertes Zertifikat (falls kein anderes vorhanden)
+if [ ! -s data/certs/fullchain.pem ]; then
+  SN=$(env_get SERVER_NAME); SIP=$(env_get SERVER_IP)
+  SAN="DNS:${SN:-localhost},DNS:localhost,IP:127.0.0.1"
+  [[ "$SN" =~ ^[0-9.]+$ ]] && SAN="IP:$SN,DNS:localhost,IP:127.0.0.1"
+  [ -n "$SIP" ] && [ "$SIP" != "$SN" ] && SAN="$SAN,IP:$SIP"
+  openssl req -x509 -nodes -newkey rsa:2048 -days 825 -keyout data/certs/privkey.pem -out data/certs/fullchain.pem \
+    -subj "/CN=${SN:-localhost}" -addext "subjectAltName=$SAN" >/dev/null 2>&1
+  chmod 644 data/certs/fullchain.pem; chmod 600 data/certs/privkey.pem
+  c_ok "Selbstsigniertes Zertifikat erzeugt (data/certs/)"
+fi
 
 # 8.–10. Datenbank, Migrationen, Anwendung
 c_info "Container werden gebaut und gestartet (dauert beim ersten Mal einige Minuten) …"

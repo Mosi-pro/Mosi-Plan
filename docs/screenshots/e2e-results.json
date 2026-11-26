@@ -1,0 +1,117 @@
+[
+ {
+  "name": "Login: falsches Passwort zeigt Fehler",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Login erfolgreich, Dashboard mit Zusammenfassung",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Projekt über Dialog erstellt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Aufgabe per Tastenkürzel erstellt und im Dashboard sichtbar",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Aufgabe abgehakt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Befehlsleiste (Strg+K) findet Projekt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Kalender Wochenansicht zeigt Termin",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Kalenderansichten umschaltbar",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Seite /projekte lädt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Seite /wochenplan lädt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Seite /assistent lädt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Seite /gedaechtnis lädt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Seite /einstellungen/system lädt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Wochenplan-Entwurf erstellt",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Sprach-Overlay öffnet mit Status/Fehlermeldung",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "PWA-Manifest vorhanden",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Service Worker registriert",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Keine JavaScript-Fehler (Desktop)",
+  "ok": true,
+  "info": ""
+ },
+ {
+  "name": "Mobil /: kein horizontales Scrollen",
+  "ok": true,
+  "info": "Überstand 0px"
+ },
+ {
+  "name": "Mobil /kalender: kein horizontales Scrollen",
+  "ok": true,
+  "info": "Überstand 0px"
+ },
+ {
+  "name": "Mobil /aufgaben: kein horizontales Scrollen",
+  "ok": true,
+  "info": "Überstand 0px"
+ },
+ {
+  "name": "Mobil /assistent: kein horizontales Scrollen",
+  "ok": true,
+  "info": "Überstand 0px"
+ },
+ {
+  "name": "Mobile Navigation mit Mikrofonbutton",
+  "ok": true,
+  "info": ""
+ }
+]

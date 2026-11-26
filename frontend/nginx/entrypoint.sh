@@ -13,10 +13,14 @@ server { listen 80 default_server; listen [::]:80 default_server; server_name _;
 EOC
   exit 0
 fi
-if [ "$MODE" = "selfsigned" ] && [ ! -s /certs/fullchain.pem ]; then
+if [ "$MODE" = "selfsigned" ] && [ ! -s /certs/fullchain.pem ] && command -v openssl >/dev/null; then
   echo "Erzeuge selbstsigniertes Zertifikat für ${SERVER_NAME:-localhost}"
   openssl req -x509 -nodes -newkey rsa:2048 -days 825 -keyout /certs/privkey.pem -out /certs/fullchain.pem \
     -subj "/CN=${SERVER_NAME:-localhost}" -addext "subjectAltName=DNS:${SERVER_NAME:-localhost},DNS:localhost,IP:127.0.0.1${SERVER_IP:+,IP:$SERVER_IP}" >/dev/null 2>&1
+fi
+if [ ! -s /certs/fullchain.pem ]; then
+  echo "FEHLER: Kein Zertifikat in data/certs/ (fullchain.pem, privkey.pem). install.sh erneut ausführen oder TLS_MODE=off setzen." >&2
+  exit 1
 fi
 cat > $CONF <<EOC
 server { listen 80 default_server; listen [::]:80 default_server; server_name _;

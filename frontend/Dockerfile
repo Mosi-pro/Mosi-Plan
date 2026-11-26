@@ -8,7 +8,6 @@ RUN npm run build
 
 # Laufzeit: Nginx als Reverse Proxy + Auslieferung der App
 FROM nginx:1.27-alpine
-RUN apk add --no-cache openssl
 COPY --from=build /src/dist /usr/share/nginx/html
 COPY nginx/ /etc/nginx/mosi/
 COPY nginx/entrypoint.sh /docker-entrypoint.d/40-mosi.sh
