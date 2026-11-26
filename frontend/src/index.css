@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   MOSI PLAN Designsystem – Farbtokens
+   Anthrazit/Navy-Basis, ein gedecktes Blau nur für Aktivität & Status.
+------------------------------------------------------------------- */
+:root {
+  --canvas: 18 21 27;       /* #12151B Seitenhintergrund */
+  --rail: 14 17 22;         /* #0E1116 Navigation */
+  --surface: 23 27 34;      /* #171B22 Flächen */
+  --raised: 29 34 43;       /* #1D222B erhöhte Flächen, Popover */
+  --line: 38 44 54;         /* #262C36 Trennlinien */
+  --line-strong: 51 59 72;  /* #333B48 Feldränder */
+  --ink: 232 235 240;       /* #E8EBF0 Primärtext */
+  --ink-2: 154 163 178;     /* #9AA3B2 Sekundärtext */
+  --ink-3: 107 116 132;     /* #6B7484 Metadaten */
+  --accent: 91 141 239;     /* #5B8DEF Akzent */
+  --accent-ink: 160 190 248;/* #A0BEF8 Akzent-Text */
+  --ok: 79 183 139;         /* #4FB78B */
+  --warn: 217 164 65;       /* #D9A441 */
+  --danger: 229 100 94;     /* #E5645E */
+  color-scheme: dark;
+}
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-canvas text-ink font-sans text-base antialiased;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-tap-highlight-color: transparent;
+}
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
+::selection { background: rgb(var(--accent) / 0.35); }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--accent) / 0.7); border-radius: 6px; }
+.tnum { font-variant-numeric: tabular-nums; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+/* Native Date-/Time-Picker an das dunkle Thema anpassen */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(0.75); cursor: pointer; }

@@ -1,0 +1,50 @@
+/** Designsystem-Tokens von MOSI PLAN – Farben als CSS-Variablen (siehe src/index.css) */
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+export default {
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        canvas: v("canvas"),
+        rail: v("rail"),
+        surface: v("surface"),
+        raised: v("raised"),
+        line: v("line"),
+        "line-strong": v("line-strong"),
+        ink: v("ink"),
+        "ink-2": v("ink-2"),
+        "ink-3": v("ink-3"),
+        accent: v("accent"),
+        "accent-ink": v("accent-ink"),
+        ok: v("ok"),
+        warn: v("warn"),
+        danger: v("danger"),
+      },
+      fontFamily: { sans: ['"Inter Variable"', "system-ui", "-apple-system", "Segoe UI", "sans-serif"] },
+      fontSize: {
+        // Skala ~1.2 (Minor Third), Zeilenhöhen nach Bringhurst
+        "2xs": ["11px", { lineHeight: "16px" }],
+        xs: ["12px", { lineHeight: "16px" }],
+        sm: ["13px", { lineHeight: "20px" }],
+        base: ["14px", { lineHeight: "22px" }],
+        md: ["16px", { lineHeight: "24px" }],
+        lg: ["19px", { lineHeight: "28px" }],
+        xl: ["23px", { lineHeight: "30px", letterSpacing: "-0.015em" }],
+        "2xl": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em" }],
+        "3xl": ["34px", { lineHeight: "42px", letterSpacing: "-0.025em" }],
+      },
+      borderRadius: { sm: "4px", DEFAULT: "6px", md: "8px", lg: "10px" },
+      boxShadow: {
+        pop: "0 12px 32px -8px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(var(--line-strong) / 0.9)",
+        focus: "0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--accent) / 0.7)",
+      },
+      keyframes: {
+        "fade-in": { from: { opacity: 0 }, to: { opacity: 1 } },
+        "pop-in": { from: { opacity: 0, transform: "translateY(4px) scale(.98)" }, to: { opacity: 1, transform: "none" } },
+        pulse: { "0%,100%": { opacity: 1 }, "50%": { opacity: 0.45 } },
+      },
+      animation: { "fade-in": "fade-in .15s ease-out", "pop-in": "pop-in .16s ease-out", pulse: "pulse 1.6s ease-in-out infinite" },
+    },
+  },
+  plugins: [],
+};
