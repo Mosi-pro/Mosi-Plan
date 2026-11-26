@@ -99,9 +99,9 @@ export default function Assistant() {
   const messages = conv.data?.messages ?? [];
   const empty = !messages.length && !live;
   return (
-    <div className="-mx-4 md:-mx-8 -my-6 md:-my-8 flex h-[calc(100dvh-56px-64px)] md:h-[calc(100dvh-56px)]">
+    <div className="glass rounded-lg border border-white/[0.12] overflow-hidden flex h-[calc(100dvh-190px)] lg:h-[calc(100dvh-150px)] min-h-[420px]">
       {/* Gesprächsliste */}
-      <aside className="hidden lg:flex w-[260px] shrink-0 flex-col border-r border-line">
+      <aside className="hidden lg:flex w-[260px] shrink-0 flex-col border-r border-white/[0.08] bg-black/10">
         <div className="p-3"><Button variant="subtle" className="w-full justify-start" loading={newConv.isPending} onClick={() => newConv.mutate()}><MessageSquarePlus className="h-4 w-4" />Neues Gespräch</Button></div>
         <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-0.5">
           {convs.data?.map((c) => (
@@ -124,7 +124,7 @@ export default function Assistant() {
 
       {/* Chat */}
       <section className="flex-1 min-w-0 flex flex-col">
-        <div className="flex items-center gap-3 h-12 px-4 md:px-6 border-b border-line">
+        <div className="flex items-center gap-3 h-14 px-5 md:px-6 border-b border-white/[0.08]">
           <h1 className="text-base font-semibold truncate flex-1">{conv.data?.title ?? "Assistent"}</h1>
           <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => newConv.mutate()}><MessageSquarePlus className="h-4 w-4" />Neu</Button>
         </div>
@@ -140,7 +140,7 @@ export default function Assistant() {
                 <div className="mt-6 text-xs font-medium text-ink-3">Beispiele</div>
                 <div className="mt-2 grid gap-2">
                   {EXAMPLES.map((e) => (
-                    <button key={e} onClick={() => send(e)} className="text-left rounded border border-line px-3.5 py-2.5 text-base text-ink-2 hover:text-ink hover:border-line-strong hover:bg-surface transition-colors">{e}</button>
+                    <button key={e} onClick={() => send(e)} className="text-left rounded-md border border-white/[0.10] bg-white/[0.05] px-4 py-3 text-base text-ink-2 hover:text-ink hover:bg-white/[0.10] transition-colors">{e}</button>
                   ))}
                 </div>
               </div>
@@ -159,13 +159,13 @@ export default function Assistant() {
             <div ref={bottom} />
           </div>
         </div>
-        <div className="border-t border-line px-4 md:px-6 py-3">
+        <div className="border-t border-white/[0.08] px-3 md:px-6 py-3">
           <form className="max-w-[760px] mx-auto flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); send(input); }}>
             <Textarea value={input} onChange={(e) => setInput(e.target.value)} rows={1} placeholder="Anfrage eingeben …" aria-label="Nachricht"
-              className="min-h-[40px] max-h-40 py-2 resize-none"
+              className="min-h-[44px] max-h-40 py-2.5 resize-none rounded-[22px]"
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }} />
-            <MicButton label={false} className="h-10 w-10 shrink-0" />
-            <Button type="submit" variant="primary" size="icon" className="h-10 w-10 shrink-0" aria-label="Senden" disabled={!input.trim() || !!live || voice.state === "recording"}><ArrowUp className="h-4 w-4" /></Button>
+            <MicButton label={false} className="h-11 w-11 shrink-0" />
+            <Button type="submit" variant="primary" size="icon" className="h-11 w-11 shrink-0" aria-label="Senden" disabled={!input.trim() || !!live || voice.state === "recording"}><ArrowUp className="h-4 w-4" /></Button>
           </form>
         </div>
       </section>
@@ -174,7 +174,7 @@ export default function Assistant() {
 }
 
 function UserBubble({ text }: { text: string }) {
-  return <div className="flex justify-end"><div className="max-w-[85%] rounded-lg rounded-br-sm bg-raised px-3.5 py-2 text-base text-ink whitespace-pre-wrap">{text}</div></div>;
+  return <div className="flex justify-end"><div className="max-w-[85%] rounded-[20px] rounded-br-md bg-white/[0.14] px-4 py-2.5 text-base text-ink whitespace-pre-wrap">{text}</div></div>;
 }
 
 function MessageView({ m, speaking, onSpeak }: { m: ChatMessage; speaking: boolean; onSpeak: () => void }) {

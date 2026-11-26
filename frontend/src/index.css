@@ -24,16 +24,37 @@
   color-scheme: dark;
 }
 
-html, body, #root { height: 100%; }
+html, body, #root { min-height: 100%; }
 body {
-  @apply bg-canvas text-ink font-sans text-base antialiased;
+  @apply text-ink font-sans text-base antialiased;
+  background-color: #17120f;
   font-feature-settings: "cv11", "ss01", "ss03";
   -webkit-tap-highlight-color: transparent;
 }
 * { scrollbar-width: thin; scrollbar-color: rgb(var(--line-strong)) transparent; }
 ::selection { background: rgb(var(--accent) / 0.35); }
-:focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--accent) / 0.7); border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px rgb(20 18 18), 0 0 0 4px rgb(var(--accent) / 0.7); }
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------------- Glas-Design ---------------- */
+/* Unscharfer, warmer Raum: Fensterlicht links, Lampenlicht rechts, dunkle Tiefe */
+.backdrop {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 12% 18%, rgb(255 196 128 / 0.28), transparent 70%),
+    radial-gradient(40% 45% at 88% 30%, rgb(255 166 92 / 0.22), transparent 70%),
+    radial-gradient(55% 50% at 70% 95%, rgb(84 112 128 / 0.30), transparent 70%),
+    radial-gradient(35% 30% at 35% 70%, rgb(150 104 72 / 0.22), transparent 75%),
+    linear-gradient(180deg, #2a2019 0%, #1a1512 45%, #121417 100%);
+}
+.backdrop::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgb(0 0 0 / 0.55) 100%);
+}
+@layer components {
+  .glass { background-color: rgb(255 255 255 / 0.075); backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 10px 40px -16px rgb(0 0 0 / 0.55); }
+  .glass-pop { background-color: rgb(30 28 30 / 0.80) !important; backdrop-filter: blur(30px) saturate(150%); -webkit-backdrop-filter: blur(30px) saturate(150%); }
+}
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

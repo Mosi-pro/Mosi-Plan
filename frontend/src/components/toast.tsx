@@ -21,7 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {items.map((t) => {
           const Icon = t.tone === "ok" ? CheckCircle2 : t.tone === "error" ? XCircle : Info;
           return (
-            <div key={t.id} className="pointer-events-auto flex items-start gap-2.5 w-full md:w-auto md:max-w-sm rounded-md bg-raised px-3.5 py-2.5 shadow-pop animate-pop-in">
+            <div key={t.id} className="pointer-events-auto flex items-start gap-2.5 w-full md:w-auto md:max-w-sm rounded-md bg-raised px-3.5 py-2.5 shadow-pop glass-pop animate-pop-in">
               <Icon className={cn("h-4 w-4 mt-0.5 shrink-0", t.tone === "ok" ? "text-ok" : t.tone === "error" ? "text-danger" : "text-accent")} />
               <span className="text-sm text-ink flex-1">{t.text}</span>
               {t.action && <button className="text-sm font-medium text-accent-ink hover:underline" onClick={t.action.onClick}>{t.action.label}</button>}

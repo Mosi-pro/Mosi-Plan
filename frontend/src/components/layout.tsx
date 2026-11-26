@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Command } from "cmdk";
 import {
   Bell, BookMarked, CalendarDays, CalendarRange, CheckSquare, FolderKanban, LayoutGrid, LogOut, Menu as MenuIcon, MessageSquare, Mic, Plus, Search,
-  Settings, MessageSquareText, User as UserIcon, X,
+  Settings, MessageSquareText, User as UserIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -32,57 +32,12 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-        <rect width="32" height="32" rx="8" fill="#1D2635" />
+        <rect width="32" height="32" rx="10" fill="rgba(255,255,255,0.14)" />
         <rect x="8" y="9" width="16" height="2.6" rx="1.3" fill="#5B8DEF" />
         <rect x="8" y="14.7" width="11" height="2.6" rx="1.3" fill="#E8EBF0" />
         <rect x="8" y="20.4" width="7" height="2.6" rx="1.3" fill="#6B7484" />
       </svg>
       <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">MOSI PLAN</span>
-    </div>
-  );
-}
-
-function NavItem({ to, label, icon: Icon, end, onClick }: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; end?: boolean; onClick?: () => void }) {
-  return (
-    <NavLink to={to} end={end} onClick={onClick}
-      className={({ isActive }) => cn("group flex items-center gap-2.5 h-8 px-2.5 rounded text-[13.5px] font-medium transition-colors",
-        isActive ? "bg-raised text-ink" : "text-ink-2 hover:text-ink hover:bg-surface")}>
-      {({ isActive }) => (<><Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-ink-3 group-hover:text-ink-2")} />{label}</>)}
-    </NavLink>
-  );
-}
-
-function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const projects = useProjects("active");
-  const { newTask } = useCreate();
-  return (
-    <div className="flex h-full flex-col">
-      <div className="px-4 h-14 flex items-center"><Logo /></div>
-      <div className="px-3">
-        <Button variant="subtle" className="w-full justify-start text-ink-2" onClick={() => { newTask(); onNavigate?.(); }}>
-          <Plus className="h-4 w-4" />Neue Aufgabe<span className="ml-auto"><Kbd>N</Kbd></span>
-        </Button>
-      </div>
-      <nav className="mt-4 px-3 space-y-0.5" aria-label="Hauptnavigation">
-        {NAV.map((n) => <NavItem key={n.to} {...n} onClick={onNavigate} />)}
-      </nav>
-      <div className="mt-6 px-3 flex-1 overflow-y-auto">
-        <div className="px-2.5 mb-1.5 text-xs font-medium text-ink-3">Aktive Projekte</div>
-        <div className="space-y-0.5">
-          {projects.data?.slice(0, 12).map((p: Project) => (
-            <NavLink key={p.id} to={`/projekte/${p.id}`} onClick={onNavigate}
-              className={({ isActive }) => cn("flex items-center gap-2.5 h-7 px-2.5 rounded text-sm", isActive ? "bg-raised text-ink" : "text-ink-2 hover:bg-surface hover:text-ink")}>
-              <span className="h-2 w-2 rounded-[3px] shrink-0" style={{ background: p.color }} />
-              <span className="truncate flex-1">{p.name}</span>
-              {p.task_overdue > 0 && <span className="tnum text-2xs text-danger">{p.task_overdue}</span>}
-            </NavLink>
-          ))}
-          {projects.data?.length === 0 && <p className="px-2.5 text-sm text-ink-3">Noch keine aktiven Projekte.</p>}
-        </div>
-      </div>
-      <div className="p-3 border-t border-line">
-        <NavItem to="/einstellungen" label="Einstellungen" icon={Settings} onClick={onNavigate} />
-      </div>
     </div>
   );
 }
@@ -117,13 +72,13 @@ function Notifications() {
   return (
     <RPopover.Root>
       <RPopover.Trigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Benachrichtigungen${unread ? ` (${unread} ungelesen)` : ""}`} className="relative">
+        <Button variant="secondary" size="icon" aria-label={`Benachrichtigungen${unread ? ` (${unread} ungelesen)` : ""}`} className="relative">
           <Bell className="h-4 w-4" />
           {unread > 0 && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-canvas" />}
         </Button>
       </RPopover.Trigger>
       <RPopover.Portal>
-        <RPopover.Content align="end" sideOffset={8} className="z-50 w-[min(380px,calc(100vw-24px))] rounded-md bg-raised shadow-pop animate-pop-in">
+        <RPopover.Content align="end" sideOffset={10} className="z-50 w-[min(380px,calc(100vw-24px))] rounded-md shadow-pop glass-pop animate-pop-in">
           <div className="flex items-center justify-between px-4 h-11 border-b border-line">
             <span className="text-sm font-semibold">Benachrichtigungen</span>
             {unread > 0 && <button className="text-sm text-accent-ink hover:underline" onClick={readAll}>Alle gelesen</button>}
@@ -169,8 +124,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
       <RDialog.Portal>
-        <RDialog.Overlay className="fixed inset-0 z-50 bg-black/55 animate-fade-in" />
-        <RDialog.Content className="fixed z-50 left-1/2 top-[10vh] -translate-x-1/2 w-[min(640px,calc(100vw-24px))] rounded-lg bg-raised shadow-pop animate-pop-in overflow-hidden">
+        <RDialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm animate-fade-in" />
+        <RDialog.Content className="fixed z-50 left-1/2 top-[10vh] -translate-x-1/2 w-[min(640px,calc(100vw-24px))] rounded-lg shadow-pop glass-pop animate-pop-in overflow-hidden">
           <RDialog.Title className="sr-only">Suche und Befehle</RDialog.Title>
           <RDialog.Description className="sr-only">Projekte, Aufgaben und Termine suchen oder Aktionen ausführen</RDialog.Description>
           <Command shouldFilter={!data} loop>
@@ -237,76 +192,122 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   );
 }
 
-/* --------------------------------------------------------------------- Kopfzeile */
+/* --------------------------------------------------------------------- Kopfzeile (schwebende Glasleiste) */
 function Topbar({ onSearch, onMenu }: { onSearch: () => void; onMenu: () => void }) {
   const { user, logout } = useAuth();
   const nav = useNavigate();
   const create = useCreate();
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-2 h-14 px-4 md:px-6 bg-canvas/85 backdrop-blur border-b border-line">
-      <Button variant="ghost" size="icon" className="md:hidden -ml-2" aria-label="Menü öffnen" onClick={onMenu}><MenuIcon className="h-5 w-5" /></Button>
-      <Logo className="md:hidden" />
-      <button onClick={onSearch} className="hidden md:flex items-center gap-2.5 h-9 w-full max-w-[420px] px-3 rounded border border-line bg-surface text-sm text-ink-3 hover:border-line-strong transition-colors">
-        <Search className="h-4 w-4" />Suchen oder Befehl eingeben<span className="ml-auto flex gap-1"><Kbd>Strg</Kbd><Kbd>K</Kbd></span>
-      </button>
-      <div className="ml-auto flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="md:hidden" aria-label="Suchen" onClick={onSearch}><Search className="h-4 w-4" /></Button>
-        <Menu>
-          <MenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Neu erstellen" className="hidden md:inline-flex"><Plus className="h-4 w-4" /></Button></MenuTrigger>
-          <MenuContent>
-            <MenuItem icon={CheckSquare} onSelect={() => create.newTask()}>Neue Aufgabe</MenuItem>
-            <MenuItem icon={CalendarDays} onSelect={() => create.newEvent()}>Neuer Termin</MenuItem>
-            <MenuItem icon={FolderKanban} onSelect={() => create.newProject()}>Neues Projekt</MenuItem>
-          </MenuContent>
-        </Menu>
-        <Notifications />
-        <div className="hidden md:block ml-1"><MicButton /></div>
-        <Menu>
-          <MenuTrigger asChild>
-            <button className="ml-1 h-8 w-8 rounded-full overflow-hidden bg-raised border border-line-strong grid place-items-center text-sm font-semibold text-ink-2" aria-label="Profil">
-              {user?.has_avatar ? <img src="/api/auth/avatar" alt="" className="h-full w-full object-cover" /> : (user?.display_name || user?.username || "?").slice(0, 1).toUpperCase()}
-            </button>
-          </MenuTrigger>
-          <MenuContent>
-            <div className="px-2 py-1.5"><div className="text-sm text-ink">{user?.display_name || user?.username}</div><div className="text-xs text-ink-3">@{user?.username}</div></div>
-            <MenuSeparator />
-            <MenuItem icon={UserIcon} onSelect={() => nav("/einstellungen/profil")}>Profil</MenuItem>
-            <MenuItem icon={Settings} onSelect={() => nav("/einstellungen")}>Einstellungen</MenuItem>
-            <MenuSeparator />
-            <MenuItem icon={LogOut} onSelect={logout}>Abmelden</MenuItem>
-          </MenuContent>
-        </Menu>
+    <header className="sticky top-0 z-30 px-3 md:px-6 pt-3 md:pt-4">
+      <div className="mx-auto max-w-[1360px] flex items-center gap-2">
+        <button onClick={onMenu} className="lg:hidden" aria-label="Menü öffnen"><Logo /></button>
+        <div className="hidden lg:flex"><Logo /></div>
+        {/* Hauptnavigation als Pille */}
+        <nav aria-label="Hauptnavigation" className="hidden lg:flex mx-auto glass rounded-full border border-white/[0.12] p-1.5 gap-1">
+          {NAV.map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} aria-label={n.label} title={n.label}
+                className={({ isActive }) => cn("flex items-center gap-2 h-10 rounded-full transition-colors", isActive ? "bg-white text-[#16130f] px-4" : "w-10 justify-center text-ink-2 hover:text-ink hover:bg-white/10")}>
+                {({ isActive }) => (<><n.icon className="h-[18px] w-[18px]" />{isActive && <span className="text-sm font-medium">{n.label}</span>}</>)}
+              </NavLink>
+          ))}
+        </nav>
+        <div className="ml-auto lg:ml-0 flex items-center gap-1.5">
+          <Button variant="secondary" size="icon" aria-label="Suchen (Strg+K)" onClick={onSearch}><Search className="h-4 w-4" /></Button>
+          <Menu>
+            <MenuTrigger asChild><Button variant="secondary" size="icon" aria-label="Neu erstellen" className="hidden md:inline-flex"><Plus className="h-4 w-4" /></Button></MenuTrigger>
+            <MenuContent>
+              <MenuItem icon={CheckSquare} onSelect={() => create.newTask()}>Neue Aufgabe</MenuItem>
+              <MenuItem icon={CalendarDays} onSelect={() => create.newEvent()}>Neuer Termin</MenuItem>
+              <MenuItem icon={FolderKanban} onSelect={() => create.newProject()}>Neues Projekt</MenuItem>
+            </MenuContent>
+          </Menu>
+          <Notifications />
+          <div className="hidden md:block"><MicButton label={false} className="h-10 w-10" /></div>
+          <Menu>
+            <MenuTrigger asChild>
+              <button className="h-10 w-10 rounded-full overflow-hidden bg-white/10 border border-white/[0.14] grid place-items-center text-sm font-semibold text-ink" aria-label="Profil">
+                {user?.has_avatar ? <img src="/api/auth/avatar" alt="" className="h-full w-full object-cover" /> : (user?.display_name || user?.username || "?").slice(0, 1).toUpperCase()}
+              </button>
+            </MenuTrigger>
+            <MenuContent>
+              <div className="px-3 py-2"><div className="text-sm text-ink">{user?.display_name || user?.username}</div><div className="text-xs text-ink-3">@{user?.username}</div></div>
+              <MenuSeparator />
+              <MenuItem icon={UserIcon} onSelect={() => nav("/einstellungen/profil")}>Profil</MenuItem>
+              <MenuItem icon={Settings} onSelect={() => nav("/einstellungen")}>Einstellungen</MenuItem>
+              <MenuSeparator />
+              <MenuItem icon={LogOut} onSelect={logout}>Abmelden</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
       </div>
     </header>
   );
 }
 
-/* --------------------------------------------------------------------- Mobile Navigation */
-function MobileNav() {
+/* --------------------------------------------------------------------- Mobiles Dock (schwebend) */
+function MobileNav({ onMore }: { onMore: () => void }) {
   const item = (to: string, label: string, Icon: React.ComponentType<{ className?: string }>, end = false) => (
-    <NavLink to={to} end={end} className={({ isActive }) => cn("flex flex-1 flex-col items-center justify-center gap-0.5 text-2xs font-medium", isActive ? "text-ink" : "text-ink-3")}>
-      {({ isActive }) => (<><Icon className={cn("h-5 w-5", isActive && "text-accent")} />{label}</>)}
+    <NavLink to={to} end={end} aria-label={label} className={({ isActive }) => cn("flex flex-1 flex-col items-center justify-center gap-0.5 h-12 rounded-full text-[10px] font-medium transition-colors", isActive ? "bg-white text-[#16130f]" : "text-ink-2")}>
+      <Icon className="h-5 w-5" /><span>{label}</span>
     </NavLink>
   );
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-rail/95 backdrop-blur border-t border-line safe-bottom" aria-label="Mobile Navigation">
-      <div className="flex h-16 items-stretch px-2">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-3 safe-bottom" aria-label="Mobile Navigation">
+      <div className="glass glass-pop mx-auto max-w-md flex items-center gap-1 rounded-full border border-white/[0.14] p-1.5 shadow-pop">
         {item("/", "Heute", LayoutGrid, true)}
         {item("/kalender", "Kalender", CalendarDays)}
-        <div className="flex flex-1 items-center justify-center"><MicButton size="lg" className="-mt-7 ring-4 ring-rail" /></div>
+        <div className="flex items-center justify-center px-1"><MicButton size="lg" className="h-14 w-14" /></div>
         {item("/aufgaben", "Aufgaben", CheckSquare)}
-        {item("/assistent", "Assistent", MessageSquare)}
+        <button onClick={onMore} className="flex flex-1 flex-col items-center justify-center gap-0.5 h-12 rounded-full text-[10px] font-medium text-ink-2" aria-label="Mehr">
+          <MenuIcon className="h-5 w-5" /><span>Mehr</span>
+        </button>
       </div>
     </nav>
   );
 }
 
+function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const projects = useProjects("active");
+  return (
+    <RDialog.Root open={open} onOpenChange={onOpenChange}>
+      <RDialog.Portal>
+        <RDialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm animate-fade-in" />
+        <RDialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-lg shadow-pop glass-pop animate-pop-in safe-bottom p-4">
+          <RDialog.Title className="sr-only">Navigation</RDialog.Title>
+          <RDialog.Description className="sr-only">Alle Bereiche</RDialog.Description>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
+          <div className="grid grid-cols-3 gap-2">
+            {[...NAV, { to: "/einstellungen", label: "Einstellungen", icon: Settings, end: false }].map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} onClick={() => onOpenChange(false)}
+                className={({ isActive }) => cn("flex flex-col items-center justify-center gap-2 h-24 rounded-md border border-white/[0.10] text-sm", isActive ? "bg-white text-[#16130f]" : "bg-white/[0.06] text-ink")}>
+                <n.icon className="h-6 w-6" />{n.label}
+              </NavLink>
+            ))}
+          </div>
+          {(projects.data?.length ?? 0) > 0 && (
+            <div className="mt-5">
+              <div className="px-1 mb-2 text-sm text-ink-3">Aktive Projekte</div>
+              <div className="space-y-1.5">
+                {projects.data!.slice(0, 8).map((p: Project) => (
+                  <NavLink key={p.id} to={`/projekte/${p.id}`} onClick={() => onOpenChange(false)} className="flex items-center gap-3 h-12 px-4 rounded-full bg-white/[0.06] border border-white/[0.08] text-base">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} /><span className="truncate flex-1">{p.name}</span><span className="text-sm text-ink-3 tnum">{p.progress} %</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
+        </RDialog.Content>
+      </RDialog.Portal>
+    </RDialog.Root>
+  );
+}
+
 export function AppLayout({ children }: { children?: ReactNode }) {
   const [cmd, setCmd] = useState(false);
-  const [drawer, setDrawer] = useState(false);
+  const [more, setMore] = useState(false);
   const loc = useLocation();
   const create = useCreate();
-  useEffect(() => setDrawer(false), [loc.pathname]);
+  useEffect(() => setMore(false), [loc.pathname]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName) || (e.target as HTMLElement)?.isContentEditable;
@@ -317,24 +318,12 @@ export function AppLayout({ children }: { children?: ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [create]);
   return (
-    <div className="min-h-full">
-      <aside className="hidden md:block fixed inset-y-0 left-0 w-[232px] bg-rail border-r border-line z-30"><Sidebar /></aside>
-      <RDialog.Root open={drawer} onOpenChange={setDrawer}>
-        <RDialog.Portal>
-          <RDialog.Overlay className="fixed inset-0 z-50 bg-black/60 animate-fade-in md:hidden" />
-          <RDialog.Content className="fixed inset-y-0 left-0 z-50 w-[78vw] max-w-[300px] bg-rail border-r border-line md:hidden animate-fade-in">
-            <RDialog.Title className="sr-only">Navigation</RDialog.Title>
-            <RDialog.Description className="sr-only">Hauptmenü</RDialog.Description>
-            <RDialog.Close asChild><Button variant="ghost" size="icon-sm" className="absolute right-3 top-3.5" aria-label="Menü schließen"><X className="h-4 w-4" /></Button></RDialog.Close>
-            <Sidebar onNavigate={() => setDrawer(false)} />
-          </RDialog.Content>
-        </RDialog.Portal>
-      </RDialog.Root>
-      <div className="md:pl-[232px] flex flex-col min-h-full">
-        <Topbar onSearch={() => setCmd(true)} onMenu={() => setDrawer(true)} />
-        <main className="flex-1 px-4 md:px-8 py-6 md:py-8 pb-28 md:pb-10 w-full max-w-[1360px] mx-auto">{children ?? <Outlet />}</main>
-      </div>
-      <MobileNav />
+    <div className="min-h-full flex flex-col">
+      <div className="backdrop" aria-hidden />
+      <Topbar onSearch={() => setCmd(true)} onMenu={() => setMore(true)} />
+      <main className="flex-1 px-4 md:px-6 pt-5 md:pt-8 pb-32 lg:pb-12 w-full max-w-[1360px] mx-auto">{children ?? <Outlet />}</main>
+      <MobileNav onMore={() => setMore(true)} />
+      <MoreSheet open={more} onOpenChange={setMore} />
       <CommandPalette open={cmd} onOpenChange={setCmd} />
     </div>
   );

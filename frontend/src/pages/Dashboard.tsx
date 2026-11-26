@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCreate } from "@/components/dialogs";
 import { TaskRow } from "@/components/task-row";
-import { MicButton } from "@/components/voice";
 import { Button, Dialog, Empty, ErrorNote, Panel, Progress, Skeleton, Switch } from "@/components/ui";
 import { api } from "@/lib/api";
-import { dateLong, relDay, time, toDate } from "@/lib/format";
+import { fmt, relDay, time, toDate } from "@/lib/format";
 import type { CalEvent, Overview } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useSaveSettings, useSettings } from "@/hooks/queries";
@@ -69,7 +68,7 @@ function DayStrip({ events }: { events: CalEvent[] }) {
           const past = en < now;
           return (
             <button key={e.id} onClick={() => editEvent(e)} title={`${time(e.start)}–${time(e.end)} ${e.title}`}
-              className={cn("absolute h-8 rounded-sm px-2 text-left overflow-hidden border-l-2 transition-colors", past ? "bg-surface text-ink-3" : "bg-raised text-ink hover:bg-line")}
+              className={cn("absolute h-8 rounded-sm px-2 text-left overflow-hidden border-l-2 transition-colors", past ? "bg-white/[0.05] text-ink-3" : "bg-white/[0.14] text-ink hover:bg-white/[0.2]")}
               style={{ left: `${left}%`, width: `${width}%`, top: 22 + lane * 38, borderLeftColor: e.color ?? (e.source === "google" ? "#4C8DF6" : "rgb(var(--accent))") }}>
               <div className="text-xs font-medium truncate leading-4 mt-[3px]">{e.title}</div>
               <div className="text-2xs text-ink-3 tnum leading-3">{time(e.start)}</div>
@@ -84,6 +83,12 @@ function DayStrip({ events }: { events: CalEvent[] }) {
       </div>
     </div>
   );
+}
+
+function Clock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 15000); return () => clearInterval(t); }, []);
+  return <div className="text-[40px] leading-none font-extralight tnum tracking-tight">{fmt(now, "HH:mm")}</div>;
 }
 
 function CustomizeDialog({ open, onOpenChange, widgets }: { open: boolean; onOpenChange: (o: boolean) => void; widgets: { id: string; visible: boolean }[] }) {
@@ -185,48 +190,67 @@ export default function Dashboard() {
 
   const main = ["overdue", "today_tasks", "projects"].filter((k) => visible(k)).sort((a, b) => order(a) - order(b));
   const side = ["upcoming", "deadlines"].filter((k) => visible(k)).sort((a, b) => order(a) - order(b));
+  const next5 = Array.from({ length: 5 }, (_, i) => { const x = new Date(); x.setDate(x.getDate() + i); return x; });
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <div className="text-sm text-ink-3">{d ? dateLong(d.date) : <Skeleton className="h-4 w-48" />}</div>
-          <h1 className="mt-1 text-2xl font-semibold text-ink">{d ? d.headline : <Skeleton className="h-8 w-64" />}</h1>
+      {/* Kopfbereich: Begrüßung links, Tages-Widget rechts */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px] items-end">
+        <div className="min-w-0 pt-2">
+          <div className="text-md text-ink-2">{d ? d.headline : <Skeleton className="h-5 w-40" />}</div>
+          <h1 className="mt-2 text-[34px] leading-[40px] md:text-[44px] md:leading-[52px] font-light tracking-tight text-ink">
+            {d ? <>{fmt(d.date, "EEEE")}<br className="hidden md:block" /> <span className="text-ink-2">{fmt(d.date, "d. MMMM")}</span></> : <Skeleton className="h-12 w-72" />}
+          </h1>
+          {visible("summary") && <p className="mt-4 max-w-[60ch] text-md text-ink-2 leading-relaxed">{d ? d.summary : <Skeleton className="h-5 w-full" />}</p>}
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <Button variant="primary" onClick={() => create.newTask()}><CheckSquare className="h-4 w-4" />Aufgabe</Button>
+            <Button variant="secondary" onClick={() => create.newEvent()}><CalendarDays className="h-4 w-4" />Termin</Button>
+            <Button variant="secondary" onClick={() => nav("/assistent")}><MessageSquareText className="h-4 w-4" />Assistent</Button>
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="Übersicht anpassen" onClick={() => setCustomize(true)}><Settings2 className="h-4 w-4" /></Button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="md:hidden"><MicButton /></div>
-          <Button variant="secondary" size="md" onClick={() => nav("/assistent")}><MessageSquareText className="h-4 w-4" />Assistent</Button>
-          <Button variant="ghost" size="icon" aria-label="Übersicht anpassen" onClick={() => setCustomize(true)}><Settings2 className="h-4 w-4" /></Button>
-        </div>
+        {/* Tages-Widget: Uhrzeit, Kennzahlen, Vorschau der nächsten Tage */}
+        <section className="glass rounded-lg border border-white/[0.12] p-5">
+          <div className="flex items-start justify-between">
+            <div><Clock /><div className="text-sm text-ink-2 mt-1">{d ? `KW ${fmt(d.date, "I")}` : ""}</div></div>
+            <div className="text-right"><div className="text-lg font-medium">{d ? fmt(d.date, "EEEE") : ""}</div><div className="text-sm text-ink-2">{d ? fmt(d.date, "d. MMMM yyyy") : ""}</div></div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            {[["Termine", d?.events_today.length ?? 0], ["Fällig", d?.tasks_today.length ?? 0], ["Überfällig", d?.overdue.length ?? 0]].map(([l, n]) => (
+              <div key={l as string} className="rounded-md bg-white/[0.06] border border-white/[0.08] py-2.5">
+                <div className={cn("text-xl font-light tnum", l === "Überfällig" && Number(n) > 0 && "text-danger")}>{n}</div><div className="text-xs text-ink-2">{l}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 grid grid-cols-5 gap-1.5">
+            {next5.map((x, i) => {
+              const key = x.toDateString();
+              const count = (d ? [...d.events_today, ...d.upcoming_events] : []).filter((e, idx, arr) => arr.findIndex((y) => y.id === e.id) === idx && new Date(e.start).toDateString() === key).length;
+              return (
+                <button key={i} onClick={() => nav(`/kalender?datum=${fmt(x, "yyyy-MM-dd")}`)} className={cn("rounded-md py-2 text-center transition-colors", i === 0 ? "bg-white text-[#16130f]" : "bg-white/[0.06] hover:bg-white/[0.12]")}>
+                  <div className="text-xs font-medium">{fmt(x, "EEE")}</div>
+                  <div className="text-lg font-light tnum leading-6">{fmt(x, "d")}</div>
+                  <div className={cn("text-[10px]", i === 0 ? "text-[#16130f]/70" : "text-ink-3")}>{count ? `${count} Termin${count > 1 ? "e" : ""}` : "frei"}</div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
       </div>
 
-      {visible("summary") && (
-        <section className="mt-6 rounded-md border border-line bg-surface px-5 py-4">
-          <div className="text-xs font-medium text-ink-3 mb-1.5">Tageslage</div>
-          {d ? <p className="text-md text-ink leading-relaxed max-w-[75ch]">{d.summary}</p> : <Skeleton className="h-6 w-full" />}
-          <div className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3">
-            <Button variant="ghost" size="sm" onClick={() => create.newTask()}><CheckSquare className="h-4 w-4" />Aufgabe</Button>
-            <Button variant="ghost" size="sm" onClick={() => create.newEvent()}><CalendarDays className="h-4 w-4" />Termin</Button>
-            <Button variant="ghost" size="sm" onClick={() => create.newProject()}><FolderKanban className="h-4 w-4" />Projekt</Button>
-          </div>
-        </section>
-      )}
-
       {visible("today_events") && (
-        <section className="mt-8">
+        <section className="mt-6 glass rounded-lg border border-white/[0.12] px-5 pt-4 pb-3">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-sm font-semibold">Heute</h2>
-            <span className="text-sm text-ink-3">{d ? (d.events_today.length === 1 ? "1 Termin" : `${d.events_today.length} Termine`) : ""}</span>
+            <h2 className="text-base font-semibold">Heute</h2>
+            <span className="text-sm text-ink-2">{d ? (d.events_today.length === 1 ? "1 Termin" : `${d.events_today.length} Termine`) : ""}</span>
           </div>
-          <div className="rounded-md border border-line bg-surface px-4 pt-4 pb-3 overflow-x-auto">
-            <div className="min-w-[560px]">{d ? <DayStrip events={d.events_today} /> : <Skeleton className="h-16 w-full" />}</div>
-          </div>
+          <div className="overflow-x-auto -mx-1 px-1"><div className="min-w-[560px]">{d ? <DayStrip events={d.events_today} /> : <Skeleton className="h-16 w-full" />}</div></div>
         </section>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6 min-w-0">{d ? main.map((k) => <div key={k}>{blocks[k]}</div>) : <Skeleton className="h-64 w-full" />}</div>
-        <div className="space-y-6">{d ? side.map((k) => <div key={k}>{blocks[k]}</div>) : <Skeleton className="h-64 w-full" />}</div>
+      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-5 min-w-0">{d ? main.map((k) => <div key={k}>{blocks[k]}</div>) : <Skeleton className="h-64 w-full" />}</div>
+        <div className="space-y-5">{d ? side.map((k) => <div key={k}>{blocks[k]}</div>) : <Skeleton className="h-64 w-full" />}</div>
       </div>
       <CustomizeDialog open={customize} onOpenChange={setCustomize} widgets={widgets} />
     </div>

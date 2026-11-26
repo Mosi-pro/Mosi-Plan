@@ -56,7 +56,7 @@ function PlanView({ plan }: { plan: Plan }) {
           {d.days.map((day) => {
             const its = items.filter((i) => i.date === day.date);
             return (
-              <section key={day.date} className={cn("rounded-md border border-line bg-surface", !day.workday && "opacity-80")}>
+              <section key={day.date} className={cn("rounded-md glass border border-white/[0.10]", !day.workday && "opacity-80")}>
                 <header className="flex items-center gap-3 px-4 h-10 border-b border-line">
                   <h3 className="text-sm font-semibold">{day.label}</h3>
                   {!day.workday && <span className="text-xs text-ink-3">kein Arbeitstag</span>}

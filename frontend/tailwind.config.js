@@ -1,16 +1,19 @@
 /** Designsystem-Tokens von MOSI PLAN – Farben als CSS-Variablen (siehe src/index.css) */
 const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+/** Glasflächen: weiß mit geringer Deckkraft; Modifier (z. B. bg-surface/60) skalieren die Grund-Deckkraft */
+const glass = (base, rgb = "255 255 255") => ({ opacityValue }) =>
+  `rgb(${rgb} / ${opacityValue !== undefined ? `calc(${opacityValue} * ${base})` : base})`;
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        canvas: v("canvas"),
-        rail: v("rail"),
-        surface: v("surface"),
-        raised: v("raised"),
-        line: v("line"),
-        "line-strong": v("line-strong"),
+        canvas: glass(0.42, "8 9 12"),
+        rail: glass(0.55, "16 15 18"),
+        surface: glass(0.075),
+        raised: glass(0.12),
+        line: glass(0.09),
+        "line-strong": glass(0.16),
         ink: v("ink"),
         "ink-2": v("ink-2"),
         "ink-3": v("ink-3"),
@@ -33,10 +36,11 @@ export default {
         "2xl": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em" }],
         "3xl": ["34px", { lineHeight: "42px", letterSpacing: "-0.025em" }],
       },
-      borderRadius: { sm: "4px", DEFAULT: "6px", md: "8px", lg: "10px" },
+      borderRadius: { sm: "8px", DEFAULT: "12px", md: "22px", lg: "28px" },
       boxShadow: {
-        pop: "0 12px 32px -8px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(var(--line-strong) / 0.9)",
-        focus: "0 0 0 2px rgb(var(--canvas)), 0 0 0 4px rgb(var(--accent) / 0.7)",
+        pop: "0 24px 60px -12px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.10), 0 0 0 1px rgb(255 255 255 / 0.12)",
+        glass: "inset 0 1px 0 rgb(255 255 255 / 0.10), 0 10px 40px -16px rgb(0 0 0 / 0.5)",
+        focus: "0 0 0 2px rgb(20 18 18), 0 0 0 4px rgb(var(--accent) / 0.7)",
       },
       keyframes: {
         "fade-in": { from: { opacity: 0 }, to: { opacity: 1 } },

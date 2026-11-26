@@ -12,18 +12,18 @@ import type { Priority } from "@/lib/types";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "subtle";
 type Size = "sm" | "md" | "lg" | "icon" | "icon-sm";
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-white hover:bg-accent/90 active:bg-accent/80 shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]",
-  secondary: "bg-raised text-ink border border-line-strong hover:border-ink-3/60 hover:bg-raised/80",
-  ghost: "text-ink-2 hover:text-ink hover:bg-raised",
-  subtle: "bg-surface text-ink-2 border border-line hover:text-ink hover:bg-raised",
+  primary: "bg-white text-[#16130f] hover:bg-white/90 active:bg-white/80 shadow-[0_6px_20px_-8px_rgb(0_0_0/0.6)]",
+  secondary: "bg-white/[0.10] text-ink border border-white/[0.14] backdrop-blur-xl hover:bg-white/[0.16]",
+  ghost: "text-ink-2 hover:text-ink hover:bg-white/[0.08]",
+  subtle: "bg-white/[0.06] text-ink-2 border border-white/[0.10] backdrop-blur-xl hover:text-ink hover:bg-white/[0.12]",
   danger: "bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-7 px-2.5 text-sm gap-1.5",
-  md: "h-9 px-3.5 text-base gap-2",
-  lg: "h-11 px-5 text-md gap-2",
-  icon: "h-9 w-9 justify-center",
-  "icon-sm": "h-7 w-7 justify-center",
+  sm: "h-8 px-3 text-sm gap-1.5",
+  md: "h-10 px-4 text-base gap-2",
+  lg: "h-12 px-6 text-md gap-2",
+  icon: "h-10 w-10 justify-center",
+  "icon-sm": "h-8 w-8 justify-center",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, v
   <button
     ref={ref}
     disabled={disabled || loading}
-    className={cn("inline-flex items-center rounded font-medium transition-colors select-none disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap", variants[variant], sizes[size], className)}
+    className={cn("inline-flex items-center rounded-full font-medium transition-colors select-none disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap", variants[variant], sizes[size], className)}
     {...p}
   >
     {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
@@ -45,10 +45,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, v
 Button.displayName = "Button";
 
 /* ------------------------------------------------------------------ Felder */
-const field = "w-full rounded bg-canvas border border-line-strong px-3 text-base text-ink placeholder:text-ink-3 transition-colors hover:border-ink-3/50 focus:border-accent/70 focus:outline-none focus-visible:shadow-none disabled:opacity-60";
+const field = "w-full rounded bg-black/25 border border-white/[0.12] px-3.5 text-base text-ink placeholder:text-ink-3 transition-colors hover:border-ink-3/50 focus:border-accent/70 focus:outline-none focus-visible:shadow-none disabled:opacity-60";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(({ className, ...p }, ref) => (
-  <input ref={ref} className={cn(field, "h-9", className)} {...p} />
+  <input ref={ref} className={cn(field, "h-10", className)} {...p} />
 ));
 Input.displayName = "Input";
 
@@ -58,7 +58,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 Textarea.displayName = "Textarea";
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(({ className, children, ...p }, ref) => (
-  <select ref={ref} className={cn(field, "h-9 pr-8 appearance-none bg-[length:16px] bg-[right_8px_center] bg-no-repeat cursor-pointer", className)}
+  <select ref={ref} className={cn(field, "h-10 pr-8 appearance-none bg-[length:16px] bg-[right_8px_center] bg-no-repeat cursor-pointer", className)}
     style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239AA3B2' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")" }}
     {...p}>
     {children}
@@ -120,7 +120,7 @@ export function Badge({ children, tone = "neutral", className }: { children: Rea
     warn: "bg-warn/12 text-warn border-warn/25",
     danger: "bg-danger/12 text-danger border-danger/25",
   };
-  return <span className={cn("inline-flex items-center gap-1 rounded-sm border px-1.5 h-5 text-xs font-medium whitespace-nowrap", tones[tone], className)}>{children}</span>;
+  return <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 h-5 text-xs font-medium whitespace-nowrap", tones[tone], className)}>{children}</span>;
 }
 
 /** Priorität als kleine Balkengrafik (keine Farbe außer bei kritisch). */
@@ -178,10 +178,10 @@ export function ErrorNote({ error, className }: { error: unknown; className?: st
 /* ------------------------------------------------------------------ Layout-Bausteine */
 export function Panel({ title, action, children, className, bodyClassName }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string; bodyClassName?: string }) {
   return (
-    <section className={cn("rounded-md border border-line bg-surface", className)}>
+    <section className={cn("glass rounded-md border border-white/[0.10] overflow-hidden", className)}>
       {(title || action) && (
-        <header className="flex items-center justify-between gap-3 px-4 h-11 border-b border-line">
-          <h2 className="text-sm font-semibold text-ink truncate">{title}</h2>
+        <header className="flex items-center justify-between gap-3 px-5 h-12">
+          <h2 className="text-base font-semibold text-ink truncate">{title}</h2>
           {action}
         </header>
       )}
@@ -195,7 +195,7 @@ export function PageHeader({ title, description, actions, children }: { title: R
     <div className="mb-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-ink">{title}</h1>
+          <h1 className="text-2xl md:text-3xl font-light tracking-tight text-ink">{title}</h1>
           {description && <p className="text-base text-ink-2 mt-1">{description}</p>}
         </div>
         {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
@@ -207,14 +207,14 @@ export function PageHeader({ title, description, actions, children }: { title: R
 
 export function Segmented<T extends string>({ value, onChange, options, className }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; className?: string }) {
   return (
-    <div role="tablist" className={cn("inline-flex rounded border border-line bg-canvas p-0.5", className)}>
+    <div role="tablist" className={cn("glass inline-flex rounded-full border border-white/[0.10] p-1", className)}>
       {options.map((o) => (
         <button
           key={o.value}
           role="tab"
           aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
-          className={cn("h-7 px-3 rounded-sm text-sm font-medium transition-colors", value === o.value ? "bg-raised text-ink shadow-[0_0_0_1px_rgb(var(--line-strong))]" : "text-ink-3 hover:text-ink-2")}
+          className={cn("h-8 px-3.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap", value === o.value ? "bg-white text-[#16130f]" : "text-ink-2 hover:text-ink")}
         >
           {o.label}
         </button>
@@ -231,12 +231,12 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
   return (
     <RDialog.Root open={open} onOpenChange={onOpenChange}>
       <RDialog.Portal>
-        <RDialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] animate-fade-in" />
+        <RDialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm animate-fade-in" />
         <RDialog.Content
           className={cn("fixed z-50 inset-x-0 bottom-0 sm:inset-auto sm:left-1/2 sm:top-[12vh] sm:-translate-x-1/2 w-full", w,
-            "max-h-[88vh] flex flex-col rounded-t-lg sm:rounded-lg bg-surface shadow-pop animate-pop-in safe-bottom")}
+            "max-h-[90dvh] flex flex-col rounded-t-lg sm:rounded-lg shadow-pop glass-pop animate-pop-in safe-bottom")}
         >
-          <div className="flex items-start justify-between gap-4 px-5 pt-4 pb-3 border-b border-line">
+          <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-3">
             <div>
               <RDialog.Title className="text-md font-semibold text-ink">{title}</RDialog.Title>
               {description ? <RDialog.Description className="text-sm text-ink-3 mt-0.5">{description}</RDialog.Description> : <RDialog.Description className="sr-only">{title}</RDialog.Description>}
@@ -245,8 +245,8 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
               <Button variant="ghost" size="icon-sm" aria-label="Schließen"><X className="h-4 w-4" /></Button>
             </RDialog.Close>
           </div>
-          <div className="px-5 py-4 overflow-y-auto">{children}</div>
-          {footer && <div className="flex justify-end gap-2 px-5 py-3 border-t border-line">{footer}</div>}
+          <div className="px-6 py-3 overflow-y-auto">{children}</div>
+          {footer && <div className="flex flex-wrap justify-end gap-2 px-6 pt-3 pb-5">{footer}</div>}
         </RDialog.Content>
       </RDialog.Portal>
     </RDialog.Root>
@@ -273,7 +273,7 @@ export const MenuTrigger = RMenu.Trigger;
 export function MenuContent({ children, align = "end" }: { children: ReactNode; align?: "start" | "end" | "center" }) {
   return (
     <RMenu.Portal>
-      <RMenu.Content align={align} sideOffset={6} className="z-50 min-w-[180px] rounded-md bg-raised p-1 shadow-pop animate-pop-in">
+      <RMenu.Content align={align} sideOffset={8} className="z-50 min-w-[200px] rounded-[18px] p-1.5 shadow-pop glass-pop animate-pop-in">
         {children}
       </RMenu.Content>
     </RMenu.Portal>
@@ -282,7 +282,7 @@ export function MenuContent({ children, align = "end" }: { children: ReactNode; 
 export function MenuItem({ children, onSelect, danger, icon: Icon }: { children: ReactNode; onSelect: () => void; danger?: boolean; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <RMenu.Item onSelect={onSelect}
-      className={cn("flex items-center gap-2 h-8 px-2 rounded-sm text-sm cursor-pointer outline-none data-[highlighted]:bg-surface", danger ? "text-danger" : "text-ink")}>
+      className={cn("flex items-center gap-2 h-9 px-3 rounded-sm text-sm cursor-pointer outline-none data-[highlighted]:bg-white/10", danger ? "text-danger" : "text-ink")}>
       {Icon && <Icon className="h-4 w-4 text-ink-3" />}
       {children}
     </RMenu.Item>
@@ -295,7 +295,7 @@ export function Tip({ label, children, side = "top" }: { label: string; children
     <RTooltip.Root delayDuration={350}>
       <RTooltip.Trigger asChild>{children}</RTooltip.Trigger>
       <RTooltip.Portal>
-        <RTooltip.Content side={side} sideOffset={6} className="z-50 rounded bg-raised px-2 py-1 text-xs text-ink shadow-pop animate-fade-in">
+        <RTooltip.Content side={side} sideOffset={6} className="z-50 rounded bg-raised px-2 py-1 text-xs text-ink shadow-pop glass-pop animate-fade-in">
           {label}
         </RTooltip.Content>
       </RTooltip.Portal>

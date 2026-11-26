@@ -258,8 +258,8 @@ function VoiceSheet() {
   const busy = ["transcribing", "thinking", "acting"].includes(v.state);
   return (
     <div className="fixed inset-0 z-[55] flex items-end md:items-center justify-center p-0 md:p-6" role="dialog" aria-modal="true" aria-label="Sprachassistent">
-      <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px] animate-fade-in" onClick={v.state === "recording" ? undefined : v.close} />
-      <div className="relative w-full md:max-w-[620px] max-h-[86vh] overflow-y-auto rounded-t-lg md:rounded-lg bg-surface shadow-pop animate-pop-in safe-bottom">
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in" onClick={v.state === "recording" ? undefined : v.close} />
+      <div className="relative w-full md:max-w-[620px] max-h-[86vh] overflow-y-auto rounded-t-lg md:rounded-lg shadow-pop glass-pop animate-pop-in safe-bottom">
         <div className="flex items-center justify-between px-5 pt-4">
           <StatusSteps state={v.state} />
           <div className="flex items-center gap-1">

@@ -12,8 +12,8 @@ export function TaskRow({ task, showProject = true, dense }: { task: Task; showP
   const done = task.status === "done";
   return (
     <div role="button" tabIndex={0} onClick={() => editTask(task)} onKeyDown={(e) => e.key === "Enter" && editTask(task)}
-      className={cn("group flex items-center gap-3 px-4 cursor-pointer hover:bg-raised/60 transition-colors", dense ? "h-10" : "min-h-[44px] py-2")}>
-      <Checkbox checked={done} onChange={() => toggle(task)} label={done ? "Als offen markieren" : "Als erledigt markieren"} />
+      className={cn("group flex items-center gap-3 px-5 cursor-pointer hover:bg-white/[0.06] transition-colors", dense ? "h-11" : "min-h-[52px] py-2")}>
+      <Checkbox className="h-5 w-5" checked={done} onChange={() => toggle(task)} label={done ? "Als offen markieren" : "Als erledigt markieren"} />
       {task.parent_id && <CornerDownRight className="h-3.5 w-3.5 text-ink-3 -ml-1" />}
       <div className="min-w-0 flex-1 flex items-center gap-2">
         <span className={cn("truncate text-base", done ? "text-ink-3 line-through" : "text-ink")}>{task.title}</span>

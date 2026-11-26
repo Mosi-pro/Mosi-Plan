@@ -17,9 +17,10 @@ export default function Login() {
   };
   return (
     <div className="min-h-full grid place-items-center px-4 py-12">
-      <div className="w-full max-w-[360px]">
+      <div className="backdrop" aria-hidden />
+      <div className="w-full max-w-[400px] glass rounded-lg border border-white/[0.12] p-7 md:p-9">
         <Logo className="mb-10" />
-        <h1 className="text-2xl font-semibold">Anmelden</h1>
+        <h1 className="text-3xl font-light tracking-tight">Anmelden</h1>
         <p className="text-base text-ink-2 mt-1">Your personal AI planning assistant.</p>
         <form onSubmit={submit} className="mt-8 space-y-4">
           <Field label="Benutzername"><Input autoFocus autoComplete="username" value={u} onChange={(e) => setU(e.target.value)} required /></Field>

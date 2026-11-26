@@ -71,7 +71,7 @@ function TimeGrid({ days, events, onMove }: { days: Date[]; events: CalEvent[]; 
   };
 
   return (
-    <div className="rounded-md border border-line bg-surface overflow-hidden">
+    <div className="rounded-md glass border border-white/[0.10] overflow-hidden">
       <div className="grid border-b border-line" style={{ gridTemplateColumns: `52px repeat(${days.length}, minmax(0,1fr))` }}>
         <div />
         {days.map((d) => (
@@ -84,7 +84,7 @@ function TimeGrid({ days, events, onMove }: { days: Date[]; events: CalEvent[]; 
           </div>
         ))}
       </div>
-      <div ref={scroller} className="relative overflow-y-auto h-[calc(100dvh-260px)] min-h-[420px]">
+      <div ref={scroller} className="relative overflow-y-auto h-[calc(100dvh-300px)] min-h-[420px]">
         <div className="grid relative" style={{ gridTemplateColumns: `52px repeat(${days.length}, minmax(0,1fr))`, height: HOUR * 24 }}>
           <div>{Array.from({ length: 24 }, (_, h) => <div key={h} className="text-2xs text-ink-3 tnum text-right pr-2 -translate-y-1.5" style={{ height: HOUR }}>{h ? `${String(h).padStart(2, "0")}:00` : ""}</div>)}</div>
           <div ref={cols} className="contents">
@@ -107,7 +107,7 @@ function TimeGrid({ days, events, onMove }: { days: Date[]; events: CalEvent[]; 
                     const dg = drag?.id === e.id ? drag : null;
                     return (
                       <div key={e.id} onPointerDown={(ev) => startDrag(ev, e, false)} onClick={(ev) => ev.stopPropagation()}
-                        className={cn("absolute rounded-sm px-1.5 py-0.5 overflow-hidden text-left select-none border-l-2 cursor-pointer touch-none", dg && "z-20 shadow-pop opacity-90")}
+                        className={cn("absolute rounded-sm px-1.5 py-0.5 overflow-hidden text-left select-none border-l-2 cursor-pointer touch-none", dg && "z-20 shadow-pop glass-pop opacity-90")}
                         style={{ top: top + (dg && !dg.resize ? dg.dy / 60 * HOUR : 0), height: h + (dg?.resize ? dg.dy / 60 * HOUR : 0), left: `calc(${(col / n) * 100}% + 2px)`, width: `calc(${100 / n}% - 4px)`,
                           transform: dg ? `translateX(${dg.dx * 100}%)` : undefined, background: color(e) + "26", borderLeftColor: color(e) }}>
                         <div className="text-xs font-medium text-ink truncate flex items-center gap-1">{e.recurring && <Repeat className="h-3 w-3 shrink-0 text-ink-3" />}{e.title}</div>
@@ -131,7 +131,7 @@ function MonthGrid({ anchor, events, onDay }: { anchor: Date; events: CalEvent[]
   const start = startOfWeek(startOfMonth(anchor), { weekStartsOn: 1 });
   const days = Array.from({ length: 42 }, (_, i) => addDays(start, i)).filter((d, i) => i < 35 || d <= endOfMonth(anchor) || i % 7 !== 0 || isSameMonth(d, anchor));
   return (
-    <div className="rounded-md border border-line bg-surface overflow-hidden">
+    <div className="rounded-md glass border border-white/[0.10] overflow-hidden">
       <div className="grid grid-cols-7 border-b border-line">{["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => <div key={d} className="px-2 py-1.5 text-xs text-ink-3">{d}</div>)}</div>
       <div className="grid grid-cols-7">
         {days.map((d) => {
@@ -196,7 +196,7 @@ export default function CalendarPage() {
         <Segmented value={view} onChange={setView} options={[{ value: "day", label: "Tag" }, { value: "week", label: "Woche" }, { value: "month", label: "Monat" }, { value: "list", label: "Liste" }]} />
         <RPopover.Root>
           <RPopover.Trigger asChild><Button variant="ghost" size="sm"><Filter className="h-4 w-4" />Filter{hidden.length > 0 && <span className="text-accent-ink">({hidden.length})</span>}</Button></RPopover.Trigger>
-          <RPopover.Portal><RPopover.Content align="end" sideOffset={6} className="z-50 w-64 rounded-md bg-raised p-2 shadow-pop">
+          <RPopover.Portal><RPopover.Content align="end" sideOffset={6} className="z-50 w-64 rounded-md bg-raised p-2 shadow-pop glass-pop">
             <div className="px-2 py-1 text-xs text-ink-3">Kalender</div>
             {sources.map((s) => <FilterRow key={s.key} label={s.label} color={s.color} on={!hidden.includes(s.key)} onClick={() => toggle(s.key)} />)}
             {(cats.data?.length ?? 0) > 0 && <div className="px-2 pt-2 pb-1 text-xs text-ink-3">Kategorien</div>}
@@ -227,7 +227,7 @@ function ListView({ events }: { events: CalEvent[] }) {
   if (!events.length) return <Empty title="Keine Termine in den nächsten 60 Tagen" />;
   const groups = events.reduce<Record<string, CalEvent[]>>((g, e) => { const k = isoDate(toDate(e.start)); (g[k] ??= []).push(e); return g; }, {});
   return (
-    <div className="rounded-md border border-line bg-surface divide-y divide-line">
+    <div className="rounded-md glass border border-white/[0.10] divide-y divide-line">
       {Object.entries(groups).map(([d, list]) => (
         <div key={d} className="flex flex-col sm:flex-row">
           <div className="sm:w-44 shrink-0 px-4 pt-3 sm:py-3 text-sm text-ink-2">{fmt(d, "EEEE, d. MMM")}</div>
