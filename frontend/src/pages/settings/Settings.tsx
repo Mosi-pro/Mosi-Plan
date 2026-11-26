@@ -79,7 +79,9 @@ function AI() {
     <>
       <Row title="Status">
         <div className="flex flex-wrap gap-2">
-          <Badge tone={status.data?.hermes_ok ? "ok" : "danger"}>{status.data?.hermes_ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}Hermes: {status.data?.hermes_message ?? "…"}</Badge>
+          {status.data?.mode === "hermes" || status.data?.hermes_ok ? (
+            <Badge tone={status.data?.hermes_ok ? "ok" : "danger"}>{status.data?.hermes_ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}Hermes: {status.data?.hermes_message ?? "…"}</Badge>
+          ) : <Badge>Hermes: nicht verwendet</Badge>}
           <Badge tone={status.data?.direct_configured ? "ok" : "neutral"}>Direkter Anbieter: {status.data?.direct_configured ? "konfiguriert" : "nicht konfiguriert"}</Badge>
         </div>
         {status.data && !status.data.available && <p className="text-sm text-warn">{status.data.reason}</p>}

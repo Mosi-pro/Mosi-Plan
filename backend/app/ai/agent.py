@@ -224,10 +224,22 @@ def _direct_call(db: Session, messages: list[dict], tools: list[dict] | None) ->
     headers = {"Content-Type": "application/json"}
     if key:
         headers["Authorization"] = f"Bearer {key}"
-    try:
-        r = httpx.post(base + "/chat/completions", json=body, headers=headers, timeout=get_settings().ai_timeout_seconds)
-    except httpx.HTTPError as exc:
-        raise AIUnavailable(f"KI-Anbieter nicht erreichbar: {exc.__class__.__name__}") from exc
+    # Kurze Überlastungen (503/502/529) automatisch abfangen: bis zu 3 Versuche mit Wartezeit
+    r = None
+    for attempt in range(3):
+        try:
+            r = httpx.post(base + "/chat/completions", json=body, headers=headers, timeout=get_settings().ai_timeout_seconds)
+        except httpx.HTTPError as exc:
+            if attempt == 2:
+                raise AIUnavailable(f"KI-Anbieter nicht erreichbar: {exc.__class__.__name__}") from exc
+            time.sleep(2 + attempt * 3)
+            continue
+        if r.status_code in (502, 503, 529) and attempt < 2:
+            time.sleep(2 + attempt * 3)
+            continue
+        break
+    if r.status_code in (502, 503, 529):
+        raise AIUnavailable("Der KI-Anbieter ist gerade überlastet (vorübergehend). Bitte in einigen Minuten erneut versuchen oder unter Einstellungen → KI ein anderes Modell wählen.")
     if r.status_code == 429:
         raise AIUnavailable("Der KI-Anbieter meldet ein Limit (429). Bitte später erneut versuchen oder Tarif/Limits beim Anbieter prüfen.")
     if r.status_code != 200:
@@ -237,6 +249,8 @@ def _direct_call(db: Session, messages: list[dict], tools: list[dict] | None) ->
                 "Das lokale KI-Modell wurde beendet, weil der Arbeitsspeicher des Servers nicht reicht. "
                 "Bitte ein kleineres Modell wählen, z. B. auf dem Server: sudo ./scripts/ki-modell.sh qwen2.5:3b"
             )
+        if r.status_code == 404 and "model" in text.lower():
+            raise AIUnavailable(f"Das Modell „{model}“ ist beim Anbieter nicht (mehr) verfügbar. Bitte unter Einstellungen → KI einen aktuellen Modellnamen eintragen. Antwort des Anbieters: {text[:200]}")
         if "not found" in text and "model" in text:
             raise AIUnavailable(f"Das Modell „{model}“ ist nicht installiert. Auf dem Server: sudo ./scripts/ki-modell.sh {model}")
         raise AIUnavailable(f"KI-Anbieter meldet Fehler {r.status_code}: {text[:200]}")
