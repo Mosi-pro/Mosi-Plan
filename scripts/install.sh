@@ -145,6 +145,17 @@ if [ ! -s data/certs/fullchain.pem ]; then
   c_ok "Selbstsigniertes Zertifikat erzeugt (data/certs/)"
 fi
 
+# Ports prüfen (häufig: Apache/nginx des Systems belegt Port 80/443)
+for PORT in $(env_get HTTP_PORT) $(env_get HTTPS_PORT); do
+  if ss -ltnH "sport = :$PORT" 2>/dev/null | grep -q . && ! docker ps --format '{{.Names}}' | grep -q 'mosi-plan-frontend'; then
+    PROC=$(ss -ltnpH "sport = :$PORT" 2>/dev/null | grep -o 'users:(("[^"]*' | head -1 | cut -d'"' -f2)
+    c_err "Port $PORT ist bereits belegt (Programm: ${PROC:-unbekannt})."
+    echo "   Lösung A: anderes Programm stoppen, z. B.:  systemctl disable --now ${PROC:-apache2}"
+    echo "   Lösung B: andere Ports in .env setzen (HTTP_PORT=8080, HTTPS_PORT=8443) und install.sh erneut starten"
+    exit 1
+  fi
+done
+
 # 8.–10. Datenbank, Migrationen, Anwendung
 c_info "Container werden gebaut und gestartet (dauert beim ersten Mal einige Minuten) …"
 dc build --pull -q
