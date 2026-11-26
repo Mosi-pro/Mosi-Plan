@@ -172,7 +172,7 @@ def run_hermes(messages: list[dict]) -> Iterator[dict]:
     body = {"model": "hermes-agent", "messages": messages, "stream": True}
     event_name = None
     try:
-        with httpx.stream("POST", url, json=body, headers=_hermes_headers(), timeout=httpx.Timeout(300, connect=5)) as r:
+        with httpx.stream("POST", url, json=body, headers=_hermes_headers(), timeout=httpx.Timeout(get_settings().ai_timeout_seconds, connect=5)) as r:
             if r.status_code == 401:
                 raise AIUnavailable("Hermes lehnt den API-Schlüssel ab (HERMES_API_KEY prüfen).")
             if r.status_code != 200:
@@ -225,7 +225,7 @@ def _direct_call(db: Session, messages: list[dict], tools: list[dict] | None) ->
     if key:
         headers["Authorization"] = f"Bearer {key}"
     try:
-        r = httpx.post(base + "/chat/completions", json=body, headers=headers, timeout=120)
+        r = httpx.post(base + "/chat/completions", json=body, headers=headers, timeout=get_settings().ai_timeout_seconds)
     except httpx.HTTPError as exc:
         raise AIUnavailable(f"KI-Anbieter nicht erreichbar: {exc.__class__.__name__}") from exc
     if r.status_code == 429:

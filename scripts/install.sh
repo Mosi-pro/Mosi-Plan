@@ -36,7 +36,7 @@ if [ ! -f /etc/docker/daemon.json ]; then
 fi
 
 # 5. Verzeichnisse
-mkdir -p data/{postgres,app/backups,app/uploads,hermes,certs,acme}
+mkdir -p data/{postgres,app/backups,app/uploads,app/tmp,hermes,certs,acme,ollama}
 chown -R 1000:1000 data/app
 
 # 6./7. Konfiguration + Secrets
@@ -56,15 +56,27 @@ else
     c_warn "Ohne Domain wird ein selbstsigniertes Zertifikat verwendet (Browser-Warnung einmalig bestätigen)."
   fi
   echo
-  echo "KI-Anbieter für Hermes Agent (Schlüssel werden nur lokal gespeichert):"
-  echo "  1) OpenRouter   2) Anderer OpenAI-kompatibler Endpunkt (z. B. Ollama)   3) Später einrichten"
+  echo "KI (Sprachmodell) für MOSI:"
+  echo "  1) Lokal & kostenlos auf diesem Server (Ollama, nur CPU – langsamer, keine Daten nach außen)  [empfohlen]"
+  echo "  2) OpenRouter (extern, Kosten/Limits je nach Modell)"
+  echo "  3) Anderer OpenAI-kompatibler Endpunkt"
+  echo "  4) Später einrichten"
   read -r -p "Auswahl [1]: " P; P=${P:-1}
-  PROVIDER=""; MODEL=""; BASE=""; KEY=""
+  PROVIDER=""; MODEL=""; BASE=""; KEY=""; PROFILES="hermes"; AIMODE="hermes"; CTX=8192
   if [ "$P" = "1" ]; then
-    PROVIDER=openrouter; BASE="https://openrouter.ai/api/v1"
-    read -r -p "OpenRouter-Modell (z. B. eine Modell-ID von openrouter.ai/models): " MODEL
-    read -r -s -p "OpenRouter-API-Schlüssel: " KEY; echo
+    PROVIDER=custom; BASE="http://ollama:11434/v1"; PROFILES="hermes,ollama"; AIMODE="direct"
+    # Modell nach Arbeitsspeicher wählen (Qwen 2.5 unterstützt Werkzeugaufrufe in Ollama)
+    if [ "$MEM_MB" -ge 14000 ]; then MODEL="qwen2.5:7b"; CTX=16384
+    elif [ "$MEM_MB" -ge 7000 ]; then MODEL="qwen2.5:7b"; CTX=8192
+    else MODEL="qwen2.5:3b"; CTX=8192; fi
+    c_info "Arbeitsspeicher ${MEM_MB} MB -> lokales Modell ${MODEL} (Kontext ${CTX})"
+    read -r -p "Anderes Ollama-Modell verwenden? (leer = ${MODEL}): " M2; MODEL=${M2:-$MODEL}
+    KEY="ollama"
   elif [ "$P" = "2" ]; then
+    PROVIDER=openrouter; BASE="https://openrouter.ai/api/v1"
+    read -r -p "OpenRouter-Modell (Modell-ID von openrouter.ai/models): " MODEL
+    read -r -s -p "OpenRouter-API-Schlüssel: " KEY; echo
+  elif [ "$P" = "3" ]; then
     PROVIDER=custom
     read -r -p "Basis-URL (z. B. http://192.168.1.10:11434/v1): " BASE
     read -r -p "Modellname: " MODEL
@@ -80,7 +92,9 @@ TLS_MODE=$([ "$TLS" = letsencrypt ] && echo custom || echo selfsigned)
 HTTP_PORT=80
 HTTPS_PORT=443
 COOKIE_SECURE=true
-COMPOSE_PROFILES=hermes
+COMPOSE_PROFILES=$PROFILES
+AI_MODE=$AIMODE
+OLLAMA_CONTEXT_LENGTH=$CTX
 HERMES_ENABLED=true
 HERMES_IMAGE=nousresearch/hermes-agent:stable
 HERMES_API_KEY=$(rand 32)
@@ -101,6 +115,7 @@ EOV
     echo "MOSI_MCP_TOKEN=$(env_get MCP_TOKEN)"
     [ "$PROVIDER" = openrouter ] && echo "OPENROUTER_API_KEY=$KEY"
     [ "$PROVIDER" = custom ] && [ -n "$KEY" ] && echo "OPENAI_API_KEY=$KEY"
+    true
   } > data/hermes/.env
   chmod 600 data/hermes/.env
   chown -R 10000:10000 data/hermes   # Hermes-Container läuft als UID 10000
@@ -143,6 +158,14 @@ for i in $(seq 1 60); do
   if dc exec -T backend curl -fsS http://127.0.0.1:8000/api/health >/dev/null 2>&1; then c_ok "Backend und Datenbank laufen"; break; fi
   sleep 3; [ "$i" = 60 ] && die "Backend startet nicht. Details: ./scripts/logs.sh backend"
 done
+
+# Lokales Modell herunterladen (einmalig, einige GB)
+if grep -q "ollama" <<<"$(env_get COMPOSE_PROFILES)"; then
+  OM=$(env_get AI_DIRECT_MODEL)
+  c_info "Lokales Sprachmodell ${OM} wird heruntergeladen (einmalig, je nach Modell 2–5 GB) …"
+  for i in $(seq 1 20); do dc exec -T ollama ollama list >/dev/null 2>&1 && break; sleep 3; done
+  if dc exec -T ollama ollama pull "$OM"; then c_ok "Modell ${OM} bereit"; else c_warn "Download fehlgeschlagen – später erneut: docker compose exec ollama ollama pull ${OM}"; fi
+fi
 
 # Administrator anlegen
 if ! dc exec -T backend python -m app.cli has-admin; then

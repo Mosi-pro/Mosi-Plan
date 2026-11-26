@@ -120,6 +120,8 @@ def get_section(db: Session, section: str) -> dict[str, Any]:
     merged = _deep_merge(DEFAULTS.get(section, {}), value)
     if section == "ai":
         env = get_settings()
+        if "mode" not in value and env.ai_mode in ("hermes", "direct", "off"):
+            merged["mode"] = env.ai_mode
         if not merged["direct_base_url"] and env.ai_direct_base_url:
             merged["direct_base_url"] = env.ai_direct_base_url
         if not merged["direct_model"] and env.ai_direct_model:

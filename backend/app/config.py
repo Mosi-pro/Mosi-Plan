@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     ai_direct_base_url: str = ""
     ai_direct_api_key: str = ""
     ai_direct_model: str = ""
+    # Startwert für den KI-Modus (hermes | direct | off), solange in den Einstellungen nichts gespeichert ist
+    ai_mode: str = ""
+    ai_timeout_seconds: int = 300
 
     disable_jobs: bool = False
     testing: bool = False

@@ -20,6 +20,20 @@ Kompatibilität: Das offizielle Image `nousresearch/hermes-agent` basiert laut R
 
 \* immer bestätigungspflichtig; zusätzlich jedes Schreiben in Google Calendar. Bestätigungspflichtige Aufrufe erzeugen eine „ausstehende Aktion“, die erst nach Klick auf **Bestätigen** ausgeführt wird (24 h gültig). Jede Eingabe wird per Pydantic validiert; es gibt keinerlei Shell- oder Dateiwerkzeug.
 
+## Komplett kostenlos: lokales Modell (Ollama)
+Bei der Installation Option **1 – Lokal & kostenlos** wählen. Dann:
+- startet ein Ollama-Container (nur intern erreichbar, keine Daten nach außen),
+- wird je nach Arbeitsspeicher automatisch ein Modell mit Werkzeug-Unterstützung geladen: `qwen2.5:7b` (ab ca. 7 GB RAM, ~4,7 GB Platte) bzw. `qwen2.5:3b` (darunter, ~2 GB),
+- wird der KI-Modus auf **direct** gesetzt: MOSI spricht ohne Umweg über Hermes mit dem Modell. Grund: Ohne Grafikkarte ist jede zusätzliche Eingabelänge spürbar langsamer, und Hermes sendet einen deutlich längeren Systemtext. Hermes bleibt installiert und kann unter Einstellungen → KI aktiviert werden; er nutzt dann dasselbe lokale Modell.
+
+Erwartung ehrlich: Antworten dauern auf einer CPU typischerweise 10–60 Sekunden; die Werkzeugnutzung kleiner Modelle ist weniger zuverlässig als bei großen Cloud-Modellen. Alle Aktionen bleiben trotzdem abgesichert (Validierung, Bestätigung, nichts wird als gespeichert dargestellt, was nicht gespeichert wurde).
+
+Modell wechseln:
+```bash
+cd /opt/mosi-plan && docker compose exec ollama ollama pull qwen2.5:3b
+```
+Danach unter Einstellungen → KI das Modell eintragen.
+
 ## Modellanbieter & Kosten (ehrlich)
 MOSI selbst ist kostenlos, das **Sprachmodell nicht unbedingt**:
 - **OpenRouter**: viele Modelle, einige als kostenlose Varianten mit strengen Rate-Limits. Limits und Verfügbarkeit ändern sich – bitte aktuell unter openrouter.ai prüfen. Für zuverlässige Werkzeugnutzung ist ein Modell mit gutem Function-Calling nötig.

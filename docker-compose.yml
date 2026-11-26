@@ -75,5 +75,20 @@ services:
     logging: *logging
     networks: [internal]   # kein Port nach außen – nur MOSI-Backend spricht mit Hermes
 
+  # Lokales, kostenloses Sprachmodell (nur CPU). Aktiv über COMPOSE_PROFILES=...,ollama
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    profiles: ["ollama"]
+    restart: unless-stopped
+    environment:
+      OLLAMA_KEEP_ALIVE: "24h"          # Modell im RAM halten -> schnellere Antworten
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-8192}"
+    volumes:
+      - ./data/ollama:/root/.ollama
+    logging: *logging
+    networks: [internal]   # kein Port nach außen
+
 networks:
   internal: {}
